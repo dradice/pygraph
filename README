@@ -1,0 +1,21 @@
+pygraph
+=======
+
+A freely available, lightweight and easy to use visualization client for
+viewing 1D data files.
+
+pygraph is a PyQt re-implementation of xGraph and yGraph:
+
+Requirements
+
+* >= python-2.6
+* >= PyQt-4.4
+* >= PyQwt-5.2
+* >= scidata-0.1
+* >= qt-4.4
+* >= qwt-5.2
+
+References
+
+http://cactuscode.org/documentation/visualization/xGraph/
+http://cactuscode.org/documentation/visualization/yGraph/
