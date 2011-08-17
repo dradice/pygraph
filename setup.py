@@ -51,9 +51,8 @@ setup(
         cmdclass = {'build': QtBuild},
         license = 'GPLv3',
         packages = ['pygraph'],
-        package_dir = {'pygraph' : 'src'},
         package_data = {'pygraph' : ['data/*']},
         requires = ['scidata', 'PyQt', 'PyQwt'],
-        scripts = ['./pygraph'],
+        scripts = ['./bin/pygraph'],
         url = 'https://bitbucket.org/dradice/scidata'
         )
