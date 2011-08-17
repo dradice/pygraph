@@ -7,6 +7,7 @@ viewing 1D data files.
 pygraph is a PyQt re-implementation of xGraph and yGraph:
 
 Requirements
+------------
 
 * >= python-2.6
 * >= PyQt-4.4
@@ -16,7 +17,10 @@ Requirements
 * >= qwt-5.2
 
 References
+----------
 
 http://cactuscode.org/documentation/visualization/xGraph/
+
 http://cactuscode.org/documentation/visualization/yGraph/
+
 https://bitbucket.org/dradice/scidata
