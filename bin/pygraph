@@ -5,11 +5,12 @@ from PyQt4.Qt import QApplication
 from pygraph.mainwindow import MainWindow
 from optparse import OptionParser
 
+app = QApplication(sys.argv)
+
 usage = "%prog [options] data0 [data1 [data2 [...]]]"
 parser = OptionParser(usage)
 (options, args) = parser.parse_args()
 
-app = QApplication(sys.argv)
-window = MainWindow(args, options)
+window = MainWindow(sys.argv)
 window.show()
 app.exec_()
