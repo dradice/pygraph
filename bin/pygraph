@@ -11,6 +11,6 @@ usage = "%prog [options] data0 [data1 [data2 [...]]]"
 parser = OptionParser(usage)
 (options, args) = parser.parse_args()
 
-window = MainWindow(sys.argv)
+window = MainWindow(args, options)
 window.show()
 app.exec_()
