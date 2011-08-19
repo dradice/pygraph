@@ -6,6 +6,8 @@ from pygraph.mainwindow import MainWindow
 from optparse import OptionParser
 
 app = QApplication(sys.argv)
+app.setOrganizationName("pygraph")
+app.setApplicationName("pygraph")
 
 usage = "%prog [options] data0 [data1 [data2 [...]]]"
 parser = OptionParser(usage)
