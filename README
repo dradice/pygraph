@@ -16,11 +16,21 @@ Requirements
 * >= qt-4.4
 * >= qwt-5.2
 
+Acknowledgements
+----------------
+
+Parts of this code has been adapted from the GPLed examples distributed
+alongside the book "Summerfield - Rapid GUI Programming with Python and Qt".
+
+The icons are from the Tango project.
+
 References
 ----------
+
+https://bitbucket.org/dradice/scidata
 
 http://cactuscode.org/documentation/visualization/xGraph/
 
 http://cactuscode.org/documentation/visualization/yGraph/
 
-https://bitbucket.org/dradice/scidata
+http://tango.freedesktop.org
