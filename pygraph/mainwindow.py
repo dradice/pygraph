@@ -10,9 +10,9 @@ class MainWindow(QMainWindow):
     pygraph main window class
 
     Members
-    * datasets   : a dictionary {filename: monodataset} storing the working data
+    * datasets   : a dictionary {filename: monodataset} storing working data
     * plotwidget : the plot widget
-    * settings   : a dictionary {option: value} storing the current setttings
+    * settings   : a dictionary {option: value} storing current setttings
     """
     datasets = {}
     plotwidget = None

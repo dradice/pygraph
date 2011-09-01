@@ -6,12 +6,18 @@ class PlotWidget(QwtPlot):
     def __init__(self, parent=None):
         super(PlotWidget, self).__init__(parent)
         self.setCanvasBackground(QColor("white"))
-        self.setAxisScale(2, 0, 1)
+        xMin = 0
+        xMax = 1
+        yMin = 0
+        yMax = 1
+        self.setAxisScale(2, xMin, xMax)
         self.setAxisTitle(2, "X Axis")
-        self.setAxisScale(0, 0, 1)
+        self.setAxisScale(0, yMin, yMax)
         self.setAxisTitle(0, "Y Axis")
 
         grid = QwtPlotGrid()
         grid.enableYMin(True)
         grid.setMinPen(QPen(DashLine))
         grid.attach(self)
+
+        QwtPlotZoomer(self.canvas())
