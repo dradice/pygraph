@@ -6,18 +6,48 @@ class PlotWidget(QwtPlot):
     def __init__(self, parent=None):
         super(PlotWidget, self).__init__(parent)
         self.setCanvasBackground(QColor("white"))
-        xMin = 0
-        xMax = 1
-        yMin = 0
-        yMax = 1
-        self.setAxisScale(2, xMin, xMax)
-        self.setAxisTitle(2, "X Axis")
-        self.setAxisScale(0, yMin, yMax)
-        self.setAxisTitle(0, "Y Axis")
 
-        grid = QwtPlotGrid()
-        grid.enableYMin(True)
-        grid.setMinPen(QPen(DashLine))
-        grid.attach(self)
+        # the two following variables are meant to avoid misunderstandings
+        self.xAxisId = 2
+        self.yAxisId = 0
+
+        self.grid = QwtPlotGrid()
+        self.grid.attach(self)
 
         QwtPlotZoomer(self.canvas())
+
+
+        self.defaultOptions = {"xMin":0, "xMax":1, "yMin":0, "yMax":1,
+                          "xAxisTitle":"X Axis", "yAxisTitle":"Y Axis",
+                          "xMinEnabled":False, "yMinEnabled":False,
+                         } 
+        self.applyOptions()
+
+    def applyOptions(self, options=None):
+        """
+            TODO: decide if the options dictionary can be empty;
+                  better make sure it can't, so error handling is done at a
+                  higher level
+
+            this function applies options to the plot
+            options expected:
+                (double) xMin, xMax, yMin, yMax  :  canvas edges
+                (string) xAxisTitle, yAxisTitle  :  axes titles
+                (bool) xMinEnabled, yMinEnabled  :  enable minor grid
+        
+        """
+        if options == None:
+            self.applyOptions(self.defaultOptions)
+            return
+
+        self.setAxisScale(self.xAxisId, options["xMin"], options["xMax"])
+        self.setAxisScale(self.yAxisId, options["yMin"], options["yMax"])
+        self.setAxisTitle(self.xAxisId, options["xAxisTitle"])
+        self.setAxisTitle(self.yAxisId, options["yAxisTitle"])
+        
+        self.grid.enableXMin(options["xMinEnabled"])
+        self.grid.enableYMin(options["yMinEnabled"])
+
+        # following option can't be modified, for now
+        self.grid.setMinPen(QPen(DashLine))
+
