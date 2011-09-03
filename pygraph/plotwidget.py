@@ -26,10 +26,6 @@ class PlotWidget(QwtPlot):
 
     def applyOptions(self, options=None):
         """
-            TODO: decide if the options dictionary can be empty;
-                  better make sure it can't, so error handling is done at a
-                  higher level
-
             this function applies options to the plot
             options expected:
                 (double) xMin, xMax, yMin, yMax  :  canvas edges
@@ -41,13 +37,15 @@ class PlotWidget(QwtPlot):
             self.applyOptions(self.defaultOptions)
             return
 
-        self.setAxisScale(self.xAxisId, options["xMin"], options["xMax"])
-        self.setAxisScale(self.yAxisId, options["yMin"], options["yMax"])
-        self.setAxisTitle(self.xAxisId, options["xAxisTitle"])
-        self.setAxisTitle(self.yAxisId, options["yAxisTitle"])
-        
-        self.grid.enableXMin(options["xMinEnabled"])
-        self.grid.enableYMin(options["yMinEnabled"])
+            self.setAxisScale(self.xAxisId, options["xMin"], options["xMax"])
+            self.setAxisScale(self.yAxisId, options["yMin"], options["yMax"])
+            self.setAxisTitle(self.xAxisId, options["xAxisTitle"])
+            self.setAxisTitle(self.yAxisId, options["yAxisTitle"])
+            
+            self.grid.enableXMin(options["xMinEnabled"])
+            self.grid.enableYMin(options["yMinEnabled"])
 
-        # following option can't be modified, for now
-        self.grid.setMinPen(QPen(DashLine))
+            # following option can't be modified, for now
+            self.grid.setMinPen(QPen(DashLine))
+
+        self.replot()
