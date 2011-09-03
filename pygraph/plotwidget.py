@@ -23,6 +23,7 @@ class PlotWidget(QwtPlot):
                          } 
         self.applyOptions()
 
+
     def applyOptions(self, options=None):
         """
             TODO: decide if the options dictionary can be empty;
@@ -50,4 +51,3 @@ class PlotWidget(QwtPlot):
 
         # following option can't be modified, for now
         self.grid.setMinPen(QPen(DashLine))
-
