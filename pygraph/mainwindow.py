@@ -1,9 +1,12 @@
+import os.path
+
 from pygraph.plotwidget import PlotWidget
+from pygraph.plotsettings import PlotSettings
 import pygraph.resources
+
+import scidata.xgraph as xg
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QSettings,\
         QSize, QPoint, QVariant
-import scidata.xgraph as xg
-import os.path
 
 class MainWindow(QMainWindow):
     """
@@ -12,11 +15,14 @@ class MainWindow(QMainWindow):
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
     * plotwidget : the plot widget
-    * settings   : a dictionary {option: value} storing current setttings
+    * settings   : a dictionary {option: value} storing current settings
     """
     datasets = {}
     plotwidget = None
-    settings = {}
+    settings = {"xMin":0, "xMax":1, "yMin":0, "yMax":1,
+                "xAxisTitle":"X Axis", "yAxisTitle":"Y Axis",
+               "xMinEnabled":False, "yMinEnabled":False
+               }
 
     def __init__(self, args=None, options=None, parent=None):
         """
@@ -38,7 +44,7 @@ class MainWindow(QMainWindow):
         self.move(position.toPoint())
 
         # Create plot
-        self.plotwidget = PlotWidget(self)
+        self.plotwidget = PlotWidget(self.settings, self)
         self.setCentralWidget(self.plotwidget)
 
         # Actions
@@ -74,6 +80,7 @@ class MainWindow(QMainWindow):
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
+
 
     def closeEvent(self, event):
         """
@@ -126,7 +133,8 @@ class MainWindow(QMainWindow):
         """
         Modify the properties of the plot
         """
-        pass
+        PlotSettings(self).exec_()
+        self.plotwidget.applySettings(self.settings)
 
     def helpSlot(self):
         """
@@ -139,3 +147,4 @@ class MainWindow(QMainWindow):
         Displays the credits
         """
         pass
+
