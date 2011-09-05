@@ -1,9 +1,12 @@
+import os.path
+
 from pygraph.plotwidget import PlotWidget
+from pygraph.plotsettings import PlotSettings
 import pygraph.resources
+
+import scidata.xgraph as xg
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QSettings,\
         QSize, QPoint, QVariant
-import scidata.xgraph as xg
-import os.path
 
 class MainWindow(QMainWindow):
     """
@@ -12,11 +15,14 @@ class MainWindow(QMainWindow):
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
     * plotwidget : the plot widget
-    * settings   : a dictionary {option: value} storing current setttings
+    * settings   : a dictionary {option: value} storing current settings
     """
     datasets = {}
     plotwidget = None
-    settings = {}
+    settings = {"xMin":0, "xMax":1, "yMin":0, "yMax":1,
+                "xAxisTitle":"X Axis", "yAxisTitle":"Y Axis",
+               "xMinEnabled":False, "yMinEnabled":False
+               }
 
     def __init__(self, args=None, options=None, parent=None):
         """
@@ -38,7 +44,7 @@ class MainWindow(QMainWindow):
         self.move(position.toPoint())
 
         # Create plot
-        self.plotwidget = PlotWidget(self)
+        self.plotwidget = PlotWidget(self.settings, self)
         self.setCentralWidget(self.plotwidget)
 
         # Actions
@@ -75,6 +81,7 @@ class MainWindow(QMainWindow):
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
 
+
     def closeEvent(self, event):
         """
         Store the settings
@@ -82,6 +89,7 @@ class MainWindow(QMainWindow):
         qset = QSettings()
         qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("MainWindow/Position", QVariant(self.pos()))
+
 
     def createAction(self, text, slot=None, shortcut=None, icon=None,
             tip=None, checkable=False, signal="triggered()"):
@@ -104,11 +112,13 @@ class MainWindow(QMainWindow):
             action.setCheckable(True)
         return action
 
+
     def importDataSlot(self):
         """
         Import data using the GUI
         """
         pass
+
 
     def exportFrameSlot(self):
         """
@@ -116,17 +126,21 @@ class MainWindow(QMainWindow):
         """
         pass
 
+
     def dataEditSlot(self):
         """
         Rescale/shift the data
         """
         pass
 
+
     def plotSettingsSlot(self):
         """
-        Modify the properties of the plot
+        Modifies the plot's settings
         """
-        pass
+        PlotSettings(self).exec_()
+        self.plotwidget.applySettings(self.settings)
+
 
     def helpSlot(self):
         """
@@ -134,8 +148,10 @@ class MainWindow(QMainWindow):
         """
         pass
 
+
     def aboutSlot(self):
         """
         Displays the credits
         """
         pass
+

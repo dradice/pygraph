@@ -3,7 +3,7 @@ from PyQt4.Qwt5.qplt import *
 
 class PlotWidget(QwtPlot):
     """a class that represents a plot"""
-    def __init__(self, parent=None):
+    def __init__(self, settings, parent=None):
         super(PlotWidget, self).__init__(parent)
         self.setCanvasBackground(QColor("white"))
 
@@ -16,36 +16,27 @@ class PlotWidget(QwtPlot):
 
         QwtPlotZoomer(self.canvas())
 
-
-        self.defaultOptions = {"xMin":0, "xMax":1, "yMin":0, "yMax":1,
-                          "xAxisTitle":"X Axis", "yAxisTitle":"Y Axis",
-                          "xMinEnabled":False, "yMinEnabled":False,
-                         } 
-        self.applyOptions()
+        self.applySettings(settings)
 
 
-    def applyOptions(self, options=None):
+    def applySettings(self, settings):
         """
-            this function applies options to the plot
+            this function applies settings to the plot
             options expected:
-                (double) xMin, xMax, yMin, yMax  :  canvas edges
+                (float) xMin, xMax, yMin, yMax  :  canvas edges
                 (string) xAxisTitle, yAxisTitle  :  axes titles
-                (bool) xMinEnabled, yMinEnabled  :  enable minor grid
+                (bool) xMinEnabled, yMinEnabled  :  enable minor grids
         
         """
-        if options == None:
-            self.applyOptions(self.defaultOptions)
-            return
+        self.setAxisScale(self.xAxisId, settings["xMin"], settings["xMax"])
+        self.setAxisScale(self.yAxisId, settings["yMin"], settings["yMax"])
+        self.setAxisTitle(self.xAxisId, settings["xAxisTitle"])
+        self.setAxisTitle(self.yAxisId, settings["yAxisTitle"])
+        
+        self.grid.enableXMin(settings["xMinEnabled"])
+        self.grid.enableYMin(settings["yMinEnabled"])
 
-            self.setAxisScale(self.xAxisId, options["xMin"], options["xMax"])
-            self.setAxisScale(self.yAxisId, options["yMin"], options["yMax"])
-            self.setAxisTitle(self.xAxisId, options["xAxisTitle"])
-            self.setAxisTitle(self.yAxisId, options["yAxisTitle"])
-            
-            self.grid.enableXMin(options["xMinEnabled"])
-            self.grid.enableYMin(options["yMinEnabled"])
-
-            # following option can't be modified, for now
-            self.grid.setMinPen(QPen(DashLine))
+        # following option can't be modified, for now
+        self.grid.setMinPen(QPen(DashLine))
 
         self.replot()
