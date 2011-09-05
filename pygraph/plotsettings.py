@@ -35,20 +35,17 @@ class PlotSettings(QDialog):
         yAxisLayout.addWidget(self.yMaxLabelLine, 2, 0, 1, 3)
         yAxisLayout.addWidget(self.yTitleLabelLine, 3, 0, 1, 3)
         yAxisLayout.addWidget(self.yMinGridCheck, 4, 0, 1, 3)
-
+        
         applyButton = QPushButton("Apply")
-#        defaultButton = QPushButton("Default")
         closeButton = QPushButton("Close")
         
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(applyButton)
-#        buttonLayout.addWidget(defaultButton)
         buttonLayout.addWidget(closeButton)
 
         layout = QGridLayout()
         layout.addLayout(xAxisLayout, 0, 0)
         layout.addLayout(yAxisLayout, 0, 1)
-#        layout.addWidget(defaultButton, 1, 0)
         layout.addLayout(buttonLayout, 1, 1)
 
         self.setLayout(layout)
@@ -69,16 +66,16 @@ class PlotSettings(QDialog):
                     self.yMinLabelLine.lineEdit.text().replace(",",".")),
                 "yMax":float(
                     self.yMaxLabelLine.lineEdit.text().replace(",",".")),
-                "xAxisTitle":str(self.xTitleLabelLine.lineEdit.text()),
-                "yAxisTitle":str(self.yTitleLabelLine.lineEdit.text()),
+                "xAxisTitle":unicode(self.xTitleLabelLine.lineEdit.text()),
+                "yAxisTitle":unicode(self.yTitleLabelLine.lineEdit.text()),
                 "xMinEnabled":self.xMinGridCheck.isChecked(),
                 "yMinEnabled":self.yMinGridCheck.isChecked()
                   }
             self.parent.settings = settings.copy()
         except ValueError:
             QMessageBox.critical(self, "Value Error",
-                               "There were some errors reading"
-                               "the data you specified."
+                               "There were some errors reading "
+                               "the data you specified.\n"
                                "Please check typos and try again."
                                 )
         self.close()
@@ -88,7 +85,7 @@ class LabelLine(QWidget):
         Label is a string that represents the label's text
         LineEdit is a string that represents the line edit's default text
 
-        for our purpose, the lineedit widget has double length than label widget
+        for our purpose, lineedit widget has double length than label widget
     """
     def __init__(self, Label="Label", LineEdit="", parent=None):
         super(LabelLine, self).__init__(parent)

@@ -90,6 +90,7 @@ class MainWindow(QMainWindow):
         qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("MainWindow/Position", QVariant(self.pos()))
 
+
     def createAction(self, text, slot=None, shortcut=None, icon=None,
             tip=None, checkable=False, signal="triggered()"):
         """
@@ -111,11 +112,13 @@ class MainWindow(QMainWindow):
             action.setCheckable(True)
         return action
 
+
     def importDataSlot(self):
         """
         Import data using the GUI
         """
         pass
+
 
     def exportFrameSlot(self):
         """
@@ -123,24 +126,28 @@ class MainWindow(QMainWindow):
         """
         pass
 
+
     def dataEditSlot(self):
         """
         Rescale/shift the data
         """
         pass
 
+
     def plotSettingsSlot(self):
         """
-        Modify the properties of the plot
+        Modifies the plot's settings
         """
         PlotSettings(self).exec_()
         self.plotwidget.applySettings(self.settings)
+
 
     def helpSlot(self):
         """
         Displays the help
         """
         pass
+
 
     def aboutSlot(self):
         """

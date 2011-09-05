@@ -21,7 +21,7 @@ class PlotWidget(QwtPlot):
 
     def applySettings(self, settings):
         """
-            this function applies options to the plot
+            this function applies settings to the plot
             options expected:
                 (float) xMin, xMax, yMin, yMax  :  canvas edges
                 (string) xAxisTitle, yAxisTitle  :  axes titles
@@ -38,6 +38,5 @@ class PlotWidget(QwtPlot):
 
         # following option can't be modified, for now
         self.grid.setMinPen(QPen(DashLine))
-    
 
         self.replot()
