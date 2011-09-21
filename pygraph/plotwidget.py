@@ -15,8 +15,16 @@ class PlotWidget(QwtPlot):
         self.grid.attach(self)
 
         QwtPlotZoomer(self.canvas())
+        legend = QwtLegend()
+#        self.insertLegend(legend)
 
         self.applySettings(settings)
+
+        curves = []
+        """
+            if we want to handle multiple curves, we may want to define this 
+            list of curves to repeatedly call plot methods on its elements.
+        """
 
 
     def applySettings(self, settings):
@@ -40,3 +48,18 @@ class PlotWidget(QwtPlot):
         self.grid.setMinPen(QPen(DashLine))
 
         self.replot()
+
+        
+    def plotFrame(self, curve, data):
+        """
+            this function plots a single frame from the 'data' dictionary
+            data has the form {'name':(xp, yp)} where 'name' is the curve's
+            name in the legend and (xp, yp) is a tuple of numpy arrays
+            representing the coordinates of the points in the current frame
+        """
+        title = data.keys()[0]
+        points = data.values()[0]
+
+        curve.setData(points[0], points[1])
+        self.replot()
+

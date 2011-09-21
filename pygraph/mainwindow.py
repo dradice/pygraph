@@ -6,7 +6,7 @@ import pygraph.resources
 
 import scidata.xgraph as xg
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QSettings,\
-        QSize, QPoint, QVariant
+        QSize, QPoint, QVariant, QMessageBox
 
 class MainWindow(QMainWindow):
     """
@@ -140,6 +140,7 @@ class MainWindow(QMainWindow):
         """
         PlotSettings(self).exec_()
         self.plotwidget.applySettings(self.settings)
+        print "OK 1"
 
 
     def helpSlot(self):
@@ -153,5 +154,10 @@ class MainWindow(QMainWindow):
         """
         Displays the credits
         """
+        QMessageBox.about(self, "PyGraph",
+                          """
+                          <b>PyGraph - Il programma che mancava</b>
+                          <p>Una produzione <i>Master and Slave</i>
+                          """)
         pass
 

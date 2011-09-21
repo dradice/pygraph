@@ -71,7 +71,7 @@ class PlotSettings(QDialog):
                 "xMinEnabled":self.xMinGridCheck.isChecked(),
                 "yMinEnabled":self.yMinGridCheck.isChecked()
                   }
-            self.parent.settings = settings.copy()
+            self.parent.settings.update(settings)
         except ValueError:
             QMessageBox.critical(self, "Value Error",
                                "There were some errors reading "
