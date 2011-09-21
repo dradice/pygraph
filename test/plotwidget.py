@@ -3,14 +3,20 @@
 import sys
 
 from PyQt4.Qt import QApplication
+from PyQt4.Qwt5 import *
 from pygraph.plotwidget import PlotWidget
 
-defaultOptions = {"xMin":0, "xMax":1, "yMin":0, "yMax":1,
-                  "xAxisTitle":"X Axis", "yAxisTitle":"Y Axis",
-                  "xMinEnabled":False, "yMinEnabled":False
-                 } 
+import numpy as np
+
+x = np.arange(0, 5, 0.01)
+y = x**2
+
 app = QApplication(sys.argv)
 plot = PlotWidget()
-plot.applysettings(defaultOptions)
+curve = QwtPlotCurve()
+curve.attach(plot)
+
+plot.plotFrame(curve, {"test":(x,y)})
+
 plot.show()
 app.exec_()

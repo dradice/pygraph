@@ -6,7 +6,7 @@ import pygraph.resources
 
 import scidata.xgraph as xg
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QSettings,\
-        QSize, QPoint, QVariant
+        QSize, QPoint, QVariant, QMessageBox
 
 class MainWindow(QMainWindow):
     """
@@ -15,14 +15,9 @@ class MainWindow(QMainWindow):
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
     * plotwidget : the plot widget
-    * settings   : a dictionary {option: value} storing current settings
     """
     datasets = {}
     plotwidget = None
-    settings = {"xMin":0, "xMax":1, "yMin":0, "yMax":1,
-                "xAxisTitle":"X Axis", "yAxisTitle":"Y Axis",
-               "xMinEnabled":False, "yMinEnabled":False
-               }
 
     def __init__(self, args=None, options=None, parent=None):
         """
@@ -44,7 +39,7 @@ class MainWindow(QMainWindow):
         self.move(position.toPoint())
 
         # Create plot
-        self.plotwidget = PlotWidget(self.settings, self)
+        self.plotwidget = PlotWidget(self)
         self.setCentralWidget(self.plotwidget)
 
         # Actions
@@ -138,9 +133,10 @@ class MainWindow(QMainWindow):
         """
         Modifies the plot's settings
         """
-        PlotSettings(self).exec_()
-        self.plotwidget.applySettings(self.settings)
-
+        pltsettings = PlotSettings(self)
+        self.connect(pltsettings, SIGNAL("changed"),
+                self.plotwidget.applySettings)
+        pltsettings.show()
 
     def helpSlot(self):
         """
@@ -153,5 +149,10 @@ class MainWindow(QMainWindow):
         """
         Displays the credits
         """
+        QMessageBox.about(self, "PyGraph",
+                          """
+                          <b>PyGraph - Il programma che mancava</b>
+                          <p>Una produzione <i>Master and Slave</i>
+                          """)
         pass
 

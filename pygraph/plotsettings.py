@@ -1,19 +1,22 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
+from pygraph.data import settings
+
 class PlotSettings(QDialog):
     """A dialog to change plotting preferences"""
     def __init__(self, parent=None):
         super(PlotSettings, self).__init__(parent)
         self.parent = parent
-        currentSettings = self.parent.settings
-        
+        currentSettings = settings.copy()
+
         xAxisLabel = QLabel("X Axis")
-        self.xMinLabelLine = LabelLine("Min", currentSettings["xMin"])
-        self.xMaxLabelLine = LabelLine("Max", currentSettings["xMax"])
-        self.xTitleLabelLine = LabelLine("Title", currentSettings["xAxisTitle"])
+        self.xMinLabelLine = LabelLine("Min", currentSettings["Plot/xMin"])
+        self.xMaxLabelLine = LabelLine("Max", currentSettings["Plot/xMax"])
+        self.xTitleLabelLine = LabelLine("Title",
+                currentSettings["Plot/xAxisTitle"])
         self.xMinGridCheck = QCheckBox("X Axis Minor Grid")
-        self.xMinGridCheck.setChecked(currentSettings["xMinEnabled"])
+        self.xMinGridCheck.setChecked(currentSettings["Plot/xMinEnabled"])
 
         xAxisLayout = QGridLayout()
         xAxisLayout.addWidget(xAxisLabel, 0, 1)
@@ -21,13 +24,14 @@ class PlotSettings(QDialog):
         xAxisLayout.addWidget(self.xMaxLabelLine, 2, 0, 1, 3)
         xAxisLayout.addWidget(self.xTitleLabelLine, 3, 0, 1, 3)
         xAxisLayout.addWidget(self.xMinGridCheck, 4, 0, 1, 3)
-        
+
         yAxisLabel = QLabel("Y Axis")
-        self.yMinLabelLine = LabelLine("Min", currentSettings["yMin"])
-        self.yMaxLabelLine = LabelLine("Max", currentSettings["yMax"])
-        self.yTitleLabelLine = LabelLine("Title", currentSettings["yAxisTitle"])
+        self.yMinLabelLine = LabelLine("Min", currentSettings["Plot/yMin"])
+        self.yMaxLabelLine = LabelLine("Max", currentSettings["Plot/yMax"])
+        self.yTitleLabelLine = LabelLine("Title",
+                currentSettings["Plot/yAxisTitle"])
         self.yMinGridCheck = QCheckBox("Y Axis Minor Grid")
-        self.yMinGridCheck.setChecked(currentSettings["yMinEnabled"])
+        self.yMinGridCheck.setChecked(currentSettings["Plot/yMinEnabled"])
 
         yAxisLayout = QGridLayout()
         yAxisLayout.addWidget(yAxisLabel, 0, 1)
@@ -35,10 +39,10 @@ class PlotSettings(QDialog):
         yAxisLayout.addWidget(self.yMaxLabelLine, 2, 0, 1, 3)
         yAxisLayout.addWidget(self.yTitleLabelLine, 3, 0, 1, 3)
         yAxisLayout.addWidget(self.yMinGridCheck, 4, 0, 1, 3)
-        
+
         applyButton = QPushButton("Apply")
         closeButton = QPushButton("Close")
-        
+
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(applyButton)
         buttonLayout.addWidget(closeButton)
@@ -49,7 +53,7 @@ class PlotSettings(QDialog):
         layout.addLayout(buttonLayout, 1, 1)
 
         self.setLayout(layout)
-     
+
         self.connect(applyButton, SIGNAL("clicked()"), self.returnSettings)
         self.connect(closeButton, SIGNAL("clicked()"), self.close)
 
@@ -57,28 +61,28 @@ class PlotSettings(QDialog):
     def returnSettings(self):
         """returns settings dictionary to be applied to the plot"""
         try:
-            settings = {
-                "xMin":float(
+            plotSettings = {
+                "Plot/xMin":float(
                     self.xMinLabelLine.lineEdit.text().replace(",",".")),
-                "xMax":float(
+                "Plot/xMax":float(
                     self.xMaxLabelLine.lineEdit.text().replace(",",".")),
-                "yMin":float(
+                "Plot/yMin":float(
                     self.yMinLabelLine.lineEdit.text().replace(",",".")),
-                "yMax":float(
+                "Plot/yMax":float(
                     self.yMaxLabelLine.lineEdit.text().replace(",",".")),
-                "xAxisTitle":unicode(self.xTitleLabelLine.lineEdit.text()),
-                "yAxisTitle":unicode(self.yTitleLabelLine.lineEdit.text()),
-                "xMinEnabled":self.xMinGridCheck.isChecked(),
-                "yMinEnabled":self.yMinGridCheck.isChecked()
+                "Plot/xAxisTitle":unicode(self.xTitleLabelLine.lineEdit.text()),
+                "Plot/yAxisTitle":unicode(self.yTitleLabelLine.lineEdit.text()),
+                "Plot/xMinEnabled":self.xMinGridCheck.isChecked(),
+                "Plot/yMinEnabled":self.yMinGridCheck.isChecked()
                   }
-            self.parent.settings = settings.copy()
+            settings.update(plotSettings)
+            self.emit(SIGNAL("changed"))
         except ValueError:
             QMessageBox.critical(self, "Value Error",
                                "There were some errors reading "
                                "the data you specified.\n"
                                "Please check typos and try again."
                                 )
-        self.close()
 
 class LabelLine(QWidget):
     """A class that represents a widget for a label and its line edit
