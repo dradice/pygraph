@@ -1,69 +1,144 @@
 from PyQt4.Qwt5 import *
 from PyQt4.Qwt5.qplt import *
 
-from pygraph.data import settings
+import pygraph.data as data
+
+from copy import deepcopy
 
 class PlotWidget(QwtPlot):
-    """a class that represents a plot"""
+    """
+        a class that represents a plot
+
+        clist  : list of colors
+        curves : dictionary of QwtPlotCurves {datafile: curve}
+        grid   : QwtPlotGrid object
+    """
+    clist = []
+    curves = {}
+    grid = None
+    zoomer = None
+
     def __init__(self, parent=None):
         super(PlotWidget, self).__init__(parent)
         self.setCanvasBackground(QColor("white"))
 
-        # the two following variables are meant to avoid misunderstandings
-        self.xAxisId = 2
-        self.yAxisId = 0
-
         self.grid = QwtPlotGrid()
         self.grid.attach(self)
 
-        QwtPlotZoomer(self.canvas())
         legend = QwtLegend()
 #        self.insertLegend(legend)
 
         self.applySettings()
 
-        curves = []
-        """
-            if we want to handle multiple curves, we may want to define this
-            list of curves to repeatedly call plot methods on its elements.
-        """
+        self.zoomer = QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yLeft,
+                QwtPicker.DragSelection, QwtPicker.AlwaysOff, self.canvas())
+        self.zoomer.setRubberBandPen(QPen(Qt.green))
+
+        pattern = [
+            QwtEventPattern.MousePattern(Qt.LeftButton, Qt.NoModifier),
+            QwtEventPattern.MousePattern(Qt.MidButton, Qt.NoModifier),
+            QwtEventPattern.MousePattern(Qt.RightButton, Qt.NoModifier),
+            QwtEventPattern.MousePattern(Qt.LeftButton, Qt.ShiftModifier),
+            QwtEventPattern.MousePattern(Qt.MidButton, Qt.ShiftModifier),
+            QwtEventPattern.MousePattern(Qt.RightButton, Qt.ShiftModifier),
+            ]
+        self.zoomer.setMousePattern(pattern)
+
+        picker = QwtPlotPicker(QwtPlot.xBottom, QwtPlot.yLeft,
+                QwtPicker.NoSelection, QwtPlotPicker.CrossRubberBand,
+                QwtPicker.AlwaysOn, self.canvas())
+        picker.setTrackerPen(QPen(Qt.red))
+
+        self.clist = deepcopy(data.colors)
+
+        self.connect(self.zoomer, SIGNAL("zoomed(const QwtDoubleRect &)"),
+                self.updateSize)
 
 
     def applySettings(self):
         """
             this function applies settings to the plot
             options expected:
-                (float) xMin, xMax, yMin, yMax  :  canvas edges
-                (string) xAxisTitle, yAxisTitle  :  axes titles
-                (bool) xMinEnabled, yMinEnabled  :  enable minor grids
+                (float) Plot/xMin, Plot/xMax, Plot/yMin, Plot/yMax: canvas edges
+                (string) Plot/xAxisTitle, Plot/yAxisTitle:  axes titles
+                (bool) Plot/xMinEnabled, Plot/yMinEnabled:  enable minor grids
 
         """
-        self.setAxisScale(self.xAxisId, settings["Plot/xMin"],
-                settings["Plot/xMax"])
-        self.setAxisScale(self.yAxisId, settings["Plot/yMin"],
-                settings["Plot/yMax"])
-        self.setAxisTitle(self.xAxisId, settings["Plot/xAxisTitle"])
-        self.setAxisTitle(self.yAxisId, settings["Plot/yAxisTitle"])
+        interval_x = self.axisScaleDiv(QwtPlot.xBottom)
+        interval_y = self.axisScaleDiv(QwtPlot.yLeft)
 
-        self.grid.enableXMin(settings["Plot/xMinEnabled"])
-        self.grid.enableYMin(settings["Plot/yMinEnabled"])
+        xmin_old = interval_x.lowerBound()
+        xmax_old = interval_x.upperBound()
+        ymin_old = interval_y.lowerBound()
+        ymax_old = interval_y.upperBound()
+
+        xmin = data.settings["Plot/xMin"]
+        xmax = data.settings["Plot/xMax"]
+
+        ymin = data.settings["Plot/yMin"]
+        ymax = data.settings["Plot/yMax"]
+
+        self.setAxisScale(QwtPlot.xBottom, xmin, xmax)
+        self.setAxisScale(QwtPlot.yLeft, ymin, ymax)
+        self.setAxisTitle(QwtPlot.xBottom, data.settings["Plot/xAxisTitle"])
+        self.setAxisTitle(QwtPlot.yLeft, data.settings["Plot/yAxisTitle"])
+
+        self.grid.enableXMin(data.settings["Plot/xMinEnabled"])
+        self.grid.enableYMin(data.settings["Plot/yMinEnabled"])
 
         # following option can't be modified, for now
-        self.grid.setMinPen(QPen(DashLine))
+        self.grid.setPen(QPen(DashLine))
+        self.grid.setMinPen(QPen(DotLine))
 
         self.replot()
 
+        # Add the new zoom to the zoomstack
+        # this should not be executed when this method is called by __init__
+        # i.e. when self.zoomer is None
+        if self.zoomer is not None and (
+                xmin_old != xmin or xmax_old != xmax or
+                ymin_old != ymin or ymax_old != ymax):
+            zoomStack = self.zoomer.zoomStack()
+            zoomStack.append(QRectF(xmin, ymin, xmax-xmin, ymax-ymin))
+            self.zoomer.setZoomStack(zoomStack)
 
-    def plotFrame(self, curve, data):
+        # this sets the current axis as zoom base
+        #self.zoomer.setZoomBase(True)
+
+
+    def plotFrame(self, data):
         """
             this function plots a single frame from the 'data' dictionary
             data has the form {'name':(xp, yp)} where 'name' is the curve's
             name in the legend and (xp, yp) is a tuple of numpy arrays
             representing the coordinates of the points in the current frame
-        """
-        title = data.keys()[0]
-        points = data.values()[0]
 
-        curve.setData(points[0], points[1])
+            WARNING: the 'name' entries have to be unique!!!
+        """
+        for key, rawdata in data.iteritems():
+            if not self.curves.has_key(key):
+                self.curves[key] = QwtPlotCurve()
+                self.curves[key].attach(self)
+
+                mycolor = self.clist.pop(0)
+                self.curves[key].setPen(QPen(QBrush(QColor(mycolor)), 2))
+
+                qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(mycolor)),
+                        QPen(QColor(mycolor)), QSize(7, 7))
+                self.curves[key].setSymbol(qsymbol)
+            self.curves[key].setData(rawdata[0], rawdata[1])
+
         self.replot()
 
+
+    def updateSize(self):
+        """
+            Update the plot ranges after a zoom
+        """
+        interval_x = self.axisScaleDiv(QwtPlot.xBottom)
+        interval_y = self.axisScaleDiv(QwtPlot.yLeft)
+
+        data.settings["Plot/xMin"] = interval_x.lowerBound()
+        data.settings["Plot/xMax"] = interval_x.upperBound()
+        data.settings["Plot/yMin"] = interval_y.lowerBound()
+        data.settings["Plot/yMax"] = interval_y.upperBound()

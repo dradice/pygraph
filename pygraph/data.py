@@ -11,3 +11,22 @@ settings = {
         "Plot/xMinEnabled": False,
         "Plot/yMinEnabled": False
         }
+
+colors = [
+        "Black",
+        "Blue",
+        "Red",
+        "Green",
+        "Purple",
+        "Orange",
+        "Navy",
+        "Silver",
+        "DarkCyan",
+        "HotPink",
+        "Lime",
+        "Chocolate",
+        "BlueViolet",
+        "DarkRed",
+        "SteelBlue",
+        "Indigo"
+        ]

@@ -8,15 +8,16 @@ from pygraph.plotwidget import PlotWidget
 
 import numpy as np
 
-x = np.arange(0, 5, 0.01)
-y = x**2
+x1 = np.arange(0, 5, 0.01)
+y1 = x1**2
+
+x2 = np.arange(0, 5, 0.02)
+y2 = x2**3
 
 app = QApplication(sys.argv)
 plot = PlotWidget()
-curve = QwtPlotCurve()
-curve.attach(plot)
 
-plot.plotFrame(curve, {"test":(x,y)})
+plot.plotFrame({"Uno":(x1, y1), "Due": (x2, y2)})
 
 plot.show()
 app.exec_()
