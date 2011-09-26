@@ -1,12 +1,15 @@
+import pygraph.data as data
 from pygraph.plotwidget import PlotWidget
 from pygraph.plotsettings import PlotSettings
 import pygraph.resources
 
-import pygraph.data as data
-
+from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QFileDialog,\
+        QSettings, QString, QSize, QPoint, QVariant, QMessageBox
+import re
+import scidata.carpet.ascii as asc
+import scidata.carpet.hdf5 as h5
 import scidata.xgraph as xg
-from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QSettings,\
-        QString, QSize, QPoint, QVariant, QMessageBox
+import os
 
 class MainWindow(QMainWindow):
     """
@@ -27,7 +30,17 @@ class MainWindow(QMainWindow):
 
         # Read data
         for fname in args:
-            self.datasets[fname] = xg.parsefile(fname)
+            name_re = re.match(r".+\.(\w+)$", fname)
+            ext = name_re.group(1)
+            if ext == "xg" or ext == "yg":
+                self.datasets[fname] = xg.parsefile(fname)
+            elif ext == "h5":
+                self.datasets[fname] = h5.parse_1D_file(fname)
+            elif ext == "asc":
+                self.datasets[fname] = asc.parse_1D_file(fname)
+            else:
+                print("Unknown file extension '" + ext + "'!")
+                exit(1)
 
         # Restore settings
         qset = QSettings()
@@ -120,7 +133,28 @@ class MainWindow(QMainWindow):
         """
         Import data using the GUI
         """
-        pass
+        fileFilters = ""
+        for key, value in data.formats.iteritems():
+            fileFilters += ";;" + key
+        filterString = fileFilters[2:]
+
+        dialog = QFileDialog(self)
+        dialog.setDirectory(os.curdir)
+        dialog.setNameFilter(filterString)
+        dialog.selectNameFilter("(*.asc)")
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        if dialog.exec_():
+            files = dialog.selectedFiles()
+            fileName  = str(files.first())
+            fileFilter = str(dialog.selectedNameFilter())
+
+            fileType = data.formats[fileFilter]
+            if fileType == 'xg':
+                self.datasets[fileName] = xg.parsefile(fileName)
+            elif fileType == "asc":
+                self.datasets[fileName] = asc.parse_1D_file(fileName)
+            elif fileType == "h5":
+                self.datasets[fileName] = h5.parse_1D_file(fileName)
 
     def exportFrameSlot(self):
         """
