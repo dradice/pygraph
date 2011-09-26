@@ -8,8 +8,8 @@ settings = {
         "Plot/yMax": 1,
         "Plot/xAxisTitle": "x",
         "Plot/yAxisTitle": "y",
-        "Plot/xMinEnabled": False,
-        "Plot/yMinEnabled": False
+        "Plot/xGridEnabled": False,
+        "Plot/yGridEnabled": False
         }
 
 colors = [

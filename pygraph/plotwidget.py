@@ -83,12 +83,11 @@ class PlotWidget(QwtPlot):
         self.setAxisTitle(QwtPlot.xBottom, data.settings["Plot/xAxisTitle"])
         self.setAxisTitle(QwtPlot.yLeft, data.settings["Plot/yAxisTitle"])
 
-        self.grid.enableXMin(data.settings["Plot/xMinEnabled"])
-        self.grid.enableYMin(data.settings["Plot/yMinEnabled"])
+        self.grid.enableX(data.settings["Plot/xGridEnabled"])
+        self.grid.enableY(data.settings["Plot/yGridEnabled"])
 
         # following option can't be modified, for now
-        self.grid.setPen(QPen(DashLine))
-        self.grid.setMinPen(QPen(DotLine))
+        self.grid.setPen(QPen(DotLine))
 
         self.replot()
 

@@ -15,30 +15,30 @@ class PlotSettings(QDialog):
         self.xMaxLabelLine = LabelLine("Max", currentSettings["Plot/xMax"])
         self.xTitleLabelLine = LabelLine("Title",
                 currentSettings["Plot/xAxisTitle"])
-        self.xMinGridCheck = QCheckBox("X Axis Minor Grid")
-        self.xMinGridCheck.setChecked(currentSettings["Plot/xMinEnabled"])
+        self.xGridCheck = QCheckBox("X Axis Grid")
+        self.xGridCheck.setChecked(currentSettings["Plot/xGridEnabled"])
 
         xAxisLayout = QGridLayout()
         xAxisLayout.addWidget(xAxisLabel, 0, 1)
         xAxisLayout.addWidget(self.xMinLabelLine, 1, 0, 1, 3)
         xAxisLayout.addWidget(self.xMaxLabelLine, 2, 0, 1, 3)
         xAxisLayout.addWidget(self.xTitleLabelLine, 3, 0, 1, 3)
-        xAxisLayout.addWidget(self.xMinGridCheck, 4, 0, 1, 3)
+        xAxisLayout.addWidget(self.xGridCheck, 4, 0, 1, 3)
 
         yAxisLabel = QLabel("Y Axis")
         self.yMinLabelLine = LabelLine("Min", currentSettings["Plot/yMin"])
         self.yMaxLabelLine = LabelLine("Max", currentSettings["Plot/yMax"])
         self.yTitleLabelLine = LabelLine("Title",
                 currentSettings["Plot/yAxisTitle"])
-        self.yMinGridCheck = QCheckBox("Y Axis Minor Grid")
-        self.yMinGridCheck.setChecked(currentSettings["Plot/yMinEnabled"])
+        self.yGridCheck = QCheckBox("Y Axis Grid")
+        self.yGridCheck.setChecked(currentSettings["Plot/yGridEnabled"])
 
         yAxisLayout = QGridLayout()
         yAxisLayout.addWidget(yAxisLabel, 0, 1)
         yAxisLayout.addWidget(self.yMinLabelLine, 1, 0, 1, 3)
         yAxisLayout.addWidget(self.yMaxLabelLine, 2, 0, 1, 3)
         yAxisLayout.addWidget(self.yTitleLabelLine, 3, 0, 1, 3)
-        yAxisLayout.addWidget(self.yMinGridCheck, 4, 0, 1, 3)
+        yAxisLayout.addWidget(self.yGridCheck, 4, 0, 1, 3)
 
         applyButton = QPushButton("Apply")
         closeButton = QPushButton("Close")
@@ -72,8 +72,8 @@ class PlotSettings(QDialog):
                     self.yMaxLabelLine.lineEdit.text().replace(",",".")),
                 "Plot/xAxisTitle":unicode(self.xTitleLabelLine.lineEdit.text()),
                 "Plot/yAxisTitle":unicode(self.yTitleLabelLine.lineEdit.text()),
-                "Plot/xMinEnabled":self.xMinGridCheck.isChecked(),
-                "Plot/yMinEnabled":self.yMinGridCheck.isChecked()
+                "Plot/xGridEnabled":self.xGridCheck.isChecked(),
+                "Plot/yGridEnabled":self.yGridCheck.isChecked()
                   }
             settings.update(plotSettings)
             self.emit(SIGNAL("changed"))
