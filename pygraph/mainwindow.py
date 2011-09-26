@@ -4,9 +4,11 @@ from pygraph.plotwidget import PlotWidget
 from pygraph.plotsettings import PlotSettings
 import pygraph.resources
 
+import pygraph.data as data
+
 import scidata.xgraph as xg
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QSettings,\
-        QSize, QPoint, QVariant, QMessageBox
+        QString, QSize, QPoint, QVariant, QMessageBox
 
 class MainWindow(QMainWindow):
     """
@@ -37,6 +39,13 @@ class MainWindow(QMainWindow):
 
         position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
         self.move(position.toPoint())
+
+        data.settings["Plot/xGridEnabled"] = qset.value(
+            "Plot/xGridEnabled", QVariant(QString(str(
+                data.settings["Plot/xGridEnabled"])))).toString() == 'True'
+        data.settings["Plot/yGridEnabled"] = qset.value(
+            "Plot/yGridEnabled", QVariant(QString(str(
+                data.settings["Plot/yGridEnabled"])))).toString() == 'True'
 
         # Create plot
         self.plotwidget = PlotWidget(self)
@@ -84,6 +93,10 @@ class MainWindow(QMainWindow):
         qset = QSettings()
         qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("MainWindow/Position", QVariant(self.pos()))
+        qset.setValue("Plot/xGridEnabled",
+                str(data.settings["Plot/xGridEnabled"]))
+        qset.setValue("Plot/yGridEnabled",
+                str(data.settings["Plot/yGridEnabled"]))
 
 
     def createAction(self, text, slot=None, shortcut=None, icon=None,
