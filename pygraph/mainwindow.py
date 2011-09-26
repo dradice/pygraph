@@ -1,5 +1,3 @@
-import os.path
-
 from pygraph.plotwidget import PlotWidget
 from pygraph.plotsettings import PlotSettings
 import pygraph.resources
@@ -29,7 +27,7 @@ class MainWindow(QMainWindow):
 
         # Read data
         for fname in args:
-            self.datasets[os.path.basename(fname)] = xg.parsefile(fname)
+            self.datasets[fname] = xg.parsefile(fname)
 
         # Restore settings
         qset = QSettings()
@@ -85,7 +83,6 @@ class MainWindow(QMainWindow):
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
 
-
     def closeEvent(self, event):
         """
         Store the settings
@@ -97,7 +94,6 @@ class MainWindow(QMainWindow):
                 str(data.settings["Plot/xGridEnabled"]))
         qset.setValue("Plot/yGridEnabled",
                 str(data.settings["Plot/yGridEnabled"]))
-
 
     def createAction(self, text, slot=None, shortcut=None, icon=None,
             tip=None, checkable=False, signal="triggered()"):
@@ -120,13 +116,11 @@ class MainWindow(QMainWindow):
             action.setCheckable(True)
         return action
 
-
     def importDataSlot(self):
         """
         Import data using the GUI
         """
         pass
-
 
     def exportFrameSlot(self):
         """
@@ -134,13 +128,11 @@ class MainWindow(QMainWindow):
         """
         pass
 
-
     def dataEditSlot(self):
         """
         Rescale/shift the data
         """
         pass
-
 
     def plotSettingsSlot(self):
         """
@@ -156,7 +148,6 @@ class MainWindow(QMainWindow):
         Displays the help
         """
         pass
-
 
     def aboutSlot(self):
         """

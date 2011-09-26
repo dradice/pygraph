@@ -47,10 +47,17 @@ class PlotSettings(QDialog):
         buttonLayout.addWidget(applyButton)
         buttonLayout.addWidget(closeButton)
 
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
+        lineLayout = QVBoxLayout()
+        lineLayout.addWidget(line)
+
         layout = QGridLayout()
         layout.addLayout(xAxisLayout, 0, 0)
-        layout.addLayout(yAxisLayout, 0, 1)
-        layout.addLayout(buttonLayout, 1, 1)
+        layout.addLayout(lineLayout, 0, 1)
+        layout.addLayout(yAxisLayout, 0, 2)
+        layout.addLayout(buttonLayout, 1, 2)
 
         self.setLayout(layout)
 
