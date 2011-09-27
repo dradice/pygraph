@@ -18,6 +18,8 @@ class MainWindow(QMainWindow):
 
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
+    * index      : a dictionary {filename: idx} storing the frame indices
+    * frames     : a dictionary {filename: frame} storing the current frame
     * plotwidget : the plot widget
     * tfinal     : final time
     * time       : current (physical) time
@@ -25,6 +27,8 @@ class MainWindow(QMainWindow):
     * timestep   : timestep
     """
     datasets = {}
+    indices = {}
+    frames = {}
     plotwidget = None
     tfinal = 0
     time = 0
@@ -50,6 +54,8 @@ class MainWindow(QMainWindow):
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
+            self.indices[fname] = 0
+            self.frames[fname] = self.datasets[fname].frame(0)
 
         # Restore settings
         qset = QSettings()
@@ -175,6 +181,8 @@ class MainWindow(QMainWindow):
                 self.datasets[fileName] = asc.parse_1D_file(fileName)
             elif fileType == "h5":
                 self.datasets[fileName] = h5.parse_1D_file(fileName)
+            self.indices[fileName] = 0
+            self.frames[fileName] = self.datasets[fileName].frame(0)
 
         self.setLimits()
         self.setTime()
@@ -197,10 +205,14 @@ class MainWindow(QMainWindow):
         """
         Plot the data at the current time
         """
-        frames = {}
         for key, item in self.datasets.iteritems():
-            frames[key] = item.find_frame(self.time)
-        self.plotwidget.plotFrame(frames)
+            try:
+                if item.time[self.indices[key] + 1] >= self.time:
+                    self.indices[key] += 1
+                    self.frames[key] = item.frame(self.indices[key])
+            except IndexError:
+                pass
+        self.plotwidget.plotFrame(self.frames)
 
     def plotSettingsSlot(self):
         """
