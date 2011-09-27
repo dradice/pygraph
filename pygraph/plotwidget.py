@@ -27,12 +27,11 @@ class PlotWidget(QwtPlot):
 
         # Using a name in legend: 
         # all the work was adding "key" as an argument of QwtPlotCurve()
-        # constructor at line 128
+        # constructor at line ~128
         self.legend = QwtLegend()
         self.legend.setItemMode(Qwt.QwtLegend.CheckableItem)
-        self.insertLegend(self.legend, Qwt.QwtPlot.BottomLegend)
+        self.insertLegend(self.legend, Qwt.QwtPlot.TopLegend)
         
-
         self.applySettings()
 
         self.zoomer = QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yLeft,
@@ -135,12 +134,6 @@ class PlotWidget(QwtPlot):
                         QPen(QColor(mycolor)), QSize(3, 3))
                 self.curves[key].setSymbol(qsymbol)
                 
-### legend test
-#                legendItem = QwtLegendItem()
-#                legendItem.setText(QwtText(key))
-#                self.legend.insert(self, legendItem)
-### end legend test
-
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
         self.replot()
@@ -153,6 +146,7 @@ class PlotWidget(QwtPlot):
         """
         plotItem.setVisible(not status)
         self.replot()
+
 
     def updateSize(self):
         """

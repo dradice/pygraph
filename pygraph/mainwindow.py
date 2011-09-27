@@ -1,7 +1,8 @@
 import pygraph.data as data
-from pygraph.plotwidget import PlotWidget
+#from pygraph.plotwidget import PlotWidget
 from pygraph.plotsettings import PlotSettings
 import pygraph.resources
+from pygraph.player import Player
 
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QFileDialog,\
         QPoint, QSettings, QString, QSize, QTimer, QVariant, QMessageBox
@@ -74,8 +75,8 @@ class MainWindow(QMainWindow):
                 data.settings["Plot/yGridEnabled"])))).toString() == 'True'
 
         # Create plot
-        self.plotwidget = PlotWidget(self)
-        self.setCentralWidget(self.plotwidget)
+        self.player = Player(self)
+        self.setCentralWidget(self.player)
 
         # Actions
         importDataAction = self.createAction("&Import...", self.importDataSlot,
@@ -212,7 +213,7 @@ class MainWindow(QMainWindow):
                     self.frames[key] = item.frame(self.indices[key])
             except IndexError:
                 pass
-        self.plotwidget.plotFrame(self.frames)
+        self.player.plotwidget.plotFrame(self.frames)
 
     def plotSettingsSlot(self):
         """
@@ -220,7 +221,7 @@ class MainWindow(QMainWindow):
         """
         pltsettings = PlotSettings(self)
         self.connect(pltsettings, SIGNAL("changed"),
-                self.plotwidget.applySettings)
+                self.player.plotwidget.applySettings)
         pltsettings.show()
 
     def setLimits(self):
@@ -244,9 +245,9 @@ class MainWindow(QMainWindow):
         data.settings['Plot/yMin'] = ymin - 0.1*size
         data.settings['Plot/yMax'] = ymax + 0.1*size
 
-        self.plotwidget.applySettings()
+        self.player.plotwidget.applySettings()
         # Reset the zoomer
-        self.plotwidget.zoomer.setZoomBase(True)
+        self.player.plotwidget.zoomer.setZoomBase(True)
 
     def setTime(self):
         """
