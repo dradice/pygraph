@@ -9,6 +9,7 @@ import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
 import scidata.xgraph as xg
+import sys
 import os
 
 class MainWindow(QMainWindow):
@@ -17,9 +18,13 @@ class MainWindow(QMainWindow):
 
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
+    * iterators  : a dictionary {filename: iterator} of frame iterators
+    * frames     : a dictionary {filename: frame} of frames
     * plotwidget : the plot widget
     """
     datasets = {}
+    iterators = {}
+    frames = {}
     plotwidget = None
 
     def __init__(self, args=None, options=None, parent=None):
@@ -41,6 +46,8 @@ class MainWindow(QMainWindow):
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
+            self.iterators[fname] = self.datasets[fname].__iter__()
+            self.frames[fname] = self.iterators[fname].next()
 
         # Restore settings
         qset = QSettings()
@@ -95,6 +102,10 @@ class MainWindow(QMainWindow):
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
+
+        if(len(self.datasets) > 0):
+            self.updateLimits()
+            self.plotFrame()
 
     def closeEvent(self, event):
         """
@@ -155,6 +166,13 @@ class MainWindow(QMainWindow):
                 self.datasets[fileName] = asc.parse_1D_file(fileName)
             elif fileType == "h5":
                 self.datasets[fileName] = h5.parse_1D_file(fileName)
+            self.iterators[fileName] = self.datasets[fileName].__iter__()
+            self.frames[fileName] = self.iterators[fileName].next()
+
+        # We will probably remove this in the future
+        self.updateLimits()
+
+        self.plotFrame()
 
     def exportFrameSlot(self):
         """
@@ -168,6 +186,12 @@ class MainWindow(QMainWindow):
         """
         pass
 
+    def plotFrame(self):
+        """
+        Plot the current frame
+        """
+        self.plotwidget.plotFrame(self.frames)
+
     def plotSettingsSlot(self):
         """
         Modifies the plot's settings
@@ -176,6 +200,29 @@ class MainWindow(QMainWindow):
         self.connect(pltsettings, SIGNAL("changed"),
                 self.plotwidget.applySettings)
         pltsettings.show()
+
+    def updateLimits(self):
+        """
+        Compute the optimial size and location of the axis
+        """
+        xmin =   sys.float_info.max
+        xmax = - sys.float_info.max
+        ymin =   sys.float_info.max
+        ymax = - sys.float_info.max
+        for key, rawdata in self.datasets.iteritems():
+            xmin = min(xmin, rawdata.data_x.min())
+            xmax = max(xmax, rawdata.data_x.max())
+            ymin = min(ymin, rawdata.data_y.min())
+            ymax = max(ymax, rawdata.data_y.max())
+
+        data.settings['Plot/xMin'] = xmin
+        data.settings['Plot/xMax'] = xmax
+        data.settings['Plot/yMin'] = ymin
+        data.settings['Plot/yMax'] = ymax
+
+        self.plotwidget.applySettings()
+        # Reset the zoomer
+        self.plotwidget.zoomer.setZoomBase(True)
 
     def helpSlot(self):
         """

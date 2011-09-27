@@ -120,12 +120,12 @@ class PlotWidget(QwtPlot):
                 self.curves[key].attach(self)
 
                 mycolor = self.clist.pop(0)
-                self.curves[key].setPen(QPen(QBrush(QColor(mycolor)), 2))
+                self.curves[key].setPen(QPen(QBrush(QColor(mycolor)), 1))
 
                 qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(mycolor)),
-                        QPen(QColor(mycolor)), QSize(7, 7))
+                        QPen(QColor(mycolor)), QSize(3, 3))
                 self.curves[key].setSymbol(qsymbol)
-            self.curves[key].setData(rawdata[0], rawdata[1])
+            self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
         self.replot()
 

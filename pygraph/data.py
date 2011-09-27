@@ -34,5 +34,5 @@ colors = [
 formats = {
         "Carpet ASCII (*.asc)": "asc",
         "Carpet HDF5 (*.h5)": "h5",
-        "xGraph and yGraph formats  (*.xg *.yg)": "xg"
+        "xGraph and yGraph formats (*.xg *.yg)": "xg"
         }
