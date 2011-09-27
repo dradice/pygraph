@@ -25,8 +25,13 @@ class PlotWidget(QwtPlot):
         self.grid = QwtPlotGrid()
         self.grid.attach(self)
 
-        legend = QwtLegend()
-#        self.insertLegend(legend)
+        # Using a name in legend: 
+        # all the work was adding "key" as an argument of QwtPlotCurve()
+        # constructor at line 128
+        self.legend = QwtLegend()
+        self.legend.setItemMode(Qwt.QwtLegend.CheckableItem)
+        self.insertLegend(self.legend, Qwt.QwtPlot.BottomLegend)
+        
 
         self.applySettings()
 
@@ -50,6 +55,10 @@ class PlotWidget(QwtPlot):
         picker.setTrackerPen(QPen(Qt.red))
 
         self.clist = deepcopy(data.colors)
+
+        self.connect(self,
+                     SIGNAL("legendChecked(QwtPlotItem*, bool)"),
+                     self.toggleVisibility)
 
         self.connect(self.zoomer, SIGNAL("zoomed(const QwtDoubleRect &)"),
                 self.updateSize)
@@ -116,7 +125,7 @@ class PlotWidget(QwtPlot):
         """
         for key, rawdata in data.iteritems():
             if not self.curves.has_key(key):
-                self.curves[key] = QwtPlotCurve()
+                self.curves[key] = QwtPlotCurve(key)
                 self.curves[key].attach(self)
 
                 mycolor = self.clist.pop(0)
@@ -125,10 +134,25 @@ class PlotWidget(QwtPlot):
                 qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(mycolor)),
                         QPen(QColor(mycolor)), QSize(3, 3))
                 self.curves[key].setSymbol(qsymbol)
+                
+### legend test
+#                legendItem = QwtLegendItem()
+#                legendItem.setText(QwtText(key))
+#                self.legend.insert(self, legendItem)
+### end legend test
+
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
         self.replot()
 
+
+    def toggleVisibility(self, plotItem, status):
+        """
+            toggles the visibility of a plot item
+            (as suggested by PyQwt Source code)
+        """
+        plotItem.setVisible(not status)
+        self.replot()
 
     def updateSize(self):
         """
