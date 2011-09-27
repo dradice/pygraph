@@ -4,7 +4,7 @@ from pygraph.plotsettings import PlotSettings
 import pygraph.resources
 
 from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QFileDialog,\
-        QSettings, QString, QSize, QPoint, QVariant, QMessageBox
+        QPoint, QSettings, QString, QSize, QTimer, QVariant, QMessageBox
 import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
@@ -18,14 +18,18 @@ class MainWindow(QMainWindow):
 
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
-    * iterators  : a dictionary {filename: iterator} of frame iterators
-    * frames     : a dictionary {filename: frame} of frames
     * plotwidget : the plot widget
+    * tfinal     : final time
+    * time       : current (physical) time
+    * timer      : QTimer()
+    * timestep   : timestep
     """
     datasets = {}
-    iterators = {}
-    frames = {}
     plotwidget = None
+    tfinal = 0
+    time = 0
+    timer = None
+    timestep = sys.float_info.max
 
     def __init__(self, args=None, options=None, parent=None):
         """
@@ -46,8 +50,6 @@ class MainWindow(QMainWindow):
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
-            self.iterators[fname] = self.datasets[fname].__iter__()
-            self.frames[fname] = self.iterators[fname].next()
 
         # Restore settings
         qset = QSettings()
@@ -103,9 +105,16 @@ class MainWindow(QMainWindow):
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
 
+        self.timer = QTimer()
+
         if(len(self.datasets) > 0):
-            self.updateLimits()
+            self.setLimits()
+            self.setTime()
+            self.setTimeStep()
             self.plotFrame()
+
+        #self.timer.start()
+        self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
     def closeEvent(self, event):
         """
@@ -166,12 +175,10 @@ class MainWindow(QMainWindow):
                 self.datasets[fileName] = asc.parse_1D_file(fileName)
             elif fileType == "h5":
                 self.datasets[fileName] = h5.parse_1D_file(fileName)
-            self.iterators[fileName] = self.datasets[fileName].__iter__()
-            self.frames[fileName] = self.iterators[fileName].next()
 
-        # We will probably remove this in the future
-        self.updateLimits()
-
+        self.setLimits()
+        self.setTime()
+        self.setTimeStep()
         self.plotFrame()
 
     def exportFrameSlot(self):
@@ -188,9 +195,12 @@ class MainWindow(QMainWindow):
 
     def plotFrame(self):
         """
-        Plot the current frame
+        Plot the data at the current time
         """
-        self.plotwidget.plotFrame(self.frames)
+        frames = {}
+        for key, item in self.datasets.iteritems():
+            frames[key] = item.find_frame(self.time)
+        self.plotwidget.plotFrame(frames)
 
     def plotSettingsSlot(self):
         """
@@ -201,7 +211,7 @@ class MainWindow(QMainWindow):
                 self.plotwidget.applySettings)
         pltsettings.show()
 
-    def updateLimits(self):
+    def setLimits(self):
         """
         Compute the optimial size and location of the axis
         """
@@ -215,14 +225,44 @@ class MainWindow(QMainWindow):
             ymin = min(ymin, rawdata.data_y.min())
             ymax = max(ymax, rawdata.data_y.max())
 
+        size = ymax - ymin
+
         data.settings['Plot/xMin'] = xmin
         data.settings['Plot/xMax'] = xmax
-        data.settings['Plot/yMin'] = ymin
-        data.settings['Plot/yMax'] = ymax
+        data.settings['Plot/yMin'] = ymin - 0.1*size
+        data.settings['Plot/yMax'] = ymax + 0.1*size
 
         self.plotwidget.applySettings()
         # Reset the zoomer
         self.plotwidget.zoomer.setZoomBase(True)
+
+    def setTime(self):
+        """
+        Initialize time
+        """
+        self.tfinal = max([data.time[-1] for data in self.datasets.values()])
+        self.time = min([data.time[0] for data in self.datasets.values()])
+
+    def setTimeStep(self):
+        """
+        Computes the optimal timestep
+        """
+        self.timestep = sys.float_info.max
+
+        for key, item in self.datasets.iteritems():
+            dt = [item.time[i] - item.time[i-1] for i in range(1, item.nframes)
+                    if item.time[i] - item.time[i-1] > 0]
+            self.timestep = min(self.timestep, min(dt))
+
+    def timeout(self):
+        """
+        Update the plot
+        """
+        self.time += self.timestep
+        if(self.time > self.tfinal):
+            self.timer.stop()
+        else:
+            self.plotFrame()
 
     def helpSlot(self):
         """
