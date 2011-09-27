@@ -1,5 +1,4 @@
 import pygraph.data as data
-#from pygraph.plotwidget import PlotWidget
 from pygraph.plotsettings import PlotSettings
 import pygraph.resources
 from pygraph.player import Player
@@ -74,6 +73,9 @@ class MainWindow(QMainWindow):
             "Plot/yGridEnabled", QVariant(QString(str(
                 data.settings["Plot/yGridEnabled"])))).toString() == 'True'
 
+        # I need the timer to be created before the player is
+        self.timer = QTimer()
+
         # Create plot
         self.player = Player(self)
         self.setCentralWidget(self.player)
@@ -111,8 +113,6 @@ class MainWindow(QMainWindow):
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
-
-        self.timer = QTimer()
 
         if(len(self.datasets) > 0):
             self.setLimits()
