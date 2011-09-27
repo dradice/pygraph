@@ -8,15 +8,24 @@ from PyQt4.Qwt5.qplt import *
 class Player(QWidget):
     """Central Widget of Main Window"""
 
-    # this is temporary
+
+# this is temporary
     FRAME_NUMBER = 1000
+    INTERVAL = 0.1
+
+
     def __init__(self, parent=None):
         super(Player, self).__init__(parent)
 
+
+#another temporary
+        self.frames = parent.frames
+
         # create a timer, this regulates the frames playing
         self.timer = QTimer()
+        self.timer.stop()
 
-        self.plotwidget = PlotWidget()
+        self.plotwidget = PlotWidget(self)
 
         # create the buttons that will be in the dialog
         self.startButton = QPushButton("Start")
@@ -49,13 +58,17 @@ class Player(QWidget):
         QObject.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
 
-    # timeout is executed each time timer emits "timeout()"
     def timeout(self):
+# this doesn't seem to wor, probably it's only plotting the same frame over and
+# over, so nothing appears to happen
+        print self.frames
+        self.plotwidget.plotFrame(self.frames)
+        print "Frame plotted!"
         pass
 
 
     def startPressed(self):
-        """docstring for startPressed"""
+        self.timer.start(self.INTERVAL)
         pass    
 
 
@@ -65,7 +78,7 @@ class Player(QWidget):
 
 
     def stopPressed(self):
-        """docstring for stopPressed"""
+        self.timer.stop()
         pass
 
 
