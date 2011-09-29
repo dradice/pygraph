@@ -30,7 +30,7 @@ class PlotWidget(QwtPlot):
         # constructor at line ~128
         self.legend = QwtLegend()
         self.legend.setItemMode(Qwt.QwtLegend.CheckableItem)
-        self.insertLegend(self.legend, Qwt.QwtPlot.TopLegend)
+        self.insertLegend(self.legend, Qwt.QwtPlot.RightLegend)
         
         self.applySettings()
 
@@ -113,7 +113,7 @@ class PlotWidget(QwtPlot):
         #self.zoomer.setZoomBase(True)
 
 
-    def plotFrame(self, data):
+    def plotFrame(self, data, title=None):
         """
             this function plots a single frame from the 'data' dictionary
             data has the form {'name':(xp, yp)} where 'name' is the curve's
@@ -136,7 +136,21 @@ class PlotWidget(QwtPlot):
                 
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
+        for litem in self.legend.legendItems():
+            litem.setChecked(True)
+            litem.setIdentifierWidth(24)
+
+        if title is not None:
+            self.setTitle(title)
+
         self.replot()
+
+
+    def resetZoomer(self):
+        """
+            Reset the zoomer stack
+        """
+        self.zoomer.setZoomBase(True)
 
 
     def toggleVisibility(self, plotItem, status):
@@ -144,7 +158,7 @@ class PlotWidget(QwtPlot):
             toggles the visibility of a plot item
             (as suggested by PyQwt Source code)
         """
-        plotItem.setVisible(not status)
+        plotItem.setVisible(status)
         self.replot()
 
 

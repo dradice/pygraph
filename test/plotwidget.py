@@ -22,7 +22,7 @@ y2 = x2**3
 app = QApplication(sys.argv)
 plot = PlotWidget()
 
-plot.plotFrame({"Uno":wrapper(x1, y1), "Due": wrapper(x2, y2)})
+plot.plotFrame({"Uno":wrapper(x1, y1), "Due": wrapper(x2, y2)}, "t = 0.5")
 
 plot.show()
 app.exec_()
