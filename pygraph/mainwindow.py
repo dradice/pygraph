@@ -265,7 +265,8 @@ class MainWindow(QMainWindow):
         for key, item in self.datasets.iteritems():
             dt = [item.time[i] - item.time[i-1] for i in range(1, item.nframes)
                     if item.time[i] - item.time[i-1] > 0]
-            self.timestep = min(self.timestep, min(dt))
+            if len(dt) > 0:
+                self.timestep = min(self.timestep, min(dt))
 
     def timeout(self):
         """
