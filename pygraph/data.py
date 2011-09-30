@@ -2,6 +2,7 @@
 Shared application data
 """
 settings = {
+        "Animation/FPS": 2,
         "Plot/legendFontSize": 8,
         "Plot/legendTextLength": 30,
         "Plot/font": "Monospace",

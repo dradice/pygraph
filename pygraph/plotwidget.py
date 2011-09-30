@@ -18,10 +18,15 @@ class PlotWidget(QwtPlot):
         clist  : list of colors
         curves : dictionary of QwtPlotCurves {datafile: curve}
         grid   : QwtPlotGrid object
+        hidden : dictionary of Bools {datafile: hidden}
+        litems : legend items
+        zoomer : QwtPlotZoom object
     """
     clist = []
     curves = {}
     grid = None
+    hidden = {}
+    litems = {}
     zoomer = None
 
     def __init__(self, parent=None):
@@ -44,6 +49,10 @@ class PlotWidget(QwtPlot):
                 QwtPicker.DragSelection, QwtPicker.AlwaysOff, self.canvas())
         self.zoomer.setRubberBandPen(QPen(Qt.green))
 
+        # Left click  : zoom
+        # Right click : previous zoom settings
+        # Shift + Right click : next zoom settings
+        # Middle click : first zoom settings
         pattern = [
             QwtEventPattern.MousePattern(Qt.LeftButton, Qt.NoModifier),
             QwtEventPattern.MousePattern(Qt.MidButton, Qt.NoModifier),
@@ -154,10 +163,15 @@ class PlotWidget(QwtPlot):
                         QPen(QColor(mycolor)), QSize(3, 3))
                 self.curves[key].setSymbol(qsymbol)
 
+                self.hidden[key] = False
+                self.litems[key] = self.legend.legendItems()[-1]
+            else:
+                self.hidden[key] = not self.curves[key].isVisible()
+
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
-        for litem in self.legend.legendItems():
-            litem.setChecked(True)
+        for key, litem in self.litems.iteritems():
+            litem.setChecked(not self.hidden[key])
             litem.setIdentifierWidth(24)
 
         if title is not None:

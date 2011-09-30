@@ -3,8 +3,9 @@ from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 import pygraph.resources
 
-from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QFileDialog, \
-        QPoint, QSettings, QString, QSize, QTimer, QVariant, QMessageBox
+from PyQt4.Qt import SIGNAL, QAction, QInputDialog, QIcon, QMainWindow,\
+        QFileDialog, QPoint, QSettings, QString, QSize, QTimer,\
+        QVariant, QMessageBox
 import numpy
 import re
 import scidata.carpet.ascii as asc
@@ -70,6 +71,9 @@ class MainWindow(QMainWindow):
         # Restore settings
         qset = QSettings()
 
+        data.settings["Animation/FPS"] = qset.value("Animation/FPS",
+                QVariant(data.settings["Animation/FPS"])).toFloat()[0]
+
         size = qset.value("MainWindow/Size", QVariant(QSize(600,400)))
         self.resize(size.toSize())
 
@@ -84,7 +88,7 @@ class MainWindow(QMainWindow):
                 data.settings["Plot/yGridEnabled"])))).toString() == 'True'
 
         self.timer = QTimer()
-        self.timer.setInterval(500)
+        self.timer.setInterval(1000.0/data.settings["Animation/FPS"])
 
         # Create plot
         self.plotwidget = PlotWidget(self)
@@ -98,14 +102,13 @@ class MainWindow(QMainWindow):
         quitAction = self.createAction("&Quit", self.close,
                 "Ctrl+Q", "system-log-out", "Close the application")
 
+        # Edit actions
         dataEditAction = self.createAction("&Data...", self.dataEditSlot,
                 "Ctrl+D", None, "Edit the data")
         plotSettingsAction = self.createAction("&Plot...",
                 self.plotSettingsSlot, "Ctrl+O", None, "Plot preferences")
-
-        helpAboutAction = self.createAction("&About pygraph", self.aboutSlot)
-        helpHelpAction = self.createAction("&Contents", self.helpSlot,
-                "Ctrl+H", "help-browser")
+        FPSEditAction = self.createAction("&FPS...", self.FPSEditSlot,
+                "Ctrl+F", None, "Set the number of frames per second")
 
         # Controls actions
         self.playAction = self.createAction("&Play", self.playSlot,
@@ -122,6 +125,13 @@ class MainWindow(QMainWindow):
                 "Ctrl+Left", "media-skip-backward", "Goto the first frame")
         gotoEndAction = self.createAction("&End", self.gotoEndSlot,
                 "Ctrl+Right", "media-skip-forward", "Goto the last frame")
+        gotoTimeAction = self.createAction("&Go to...", self.gotoTimeSlot,
+                "Ctrl+G", None, "Go to a given point in time")
+
+        # Help actions
+        helpAboutAction = self.createAction("&About pygraph", self.aboutSlot)
+        helpHelpAction = self.createAction("&Contents", self.helpSlot,
+                "Ctrl+H", "help-browser")
 
         # File menu
         fileMenu = self.menuBar().addMenu("&File")
@@ -134,6 +144,7 @@ class MainWindow(QMainWindow):
         editMenu = self.menuBar().addMenu("&Edit")
         editMenu.addAction(dataEditAction)
         editMenu.addAction(plotSettingsAction)
+        editMenu.addAction(FPSEditAction)
 
         # Play menu
         playMenu = self.menuBar().addMenu("&Play")
@@ -144,6 +155,8 @@ class MainWindow(QMainWindow):
         playMenu.addAction(stepBackwardAction)
         playMenu.addAction(stepForwardAction)
         playMenu.addAction(gotoEndAction)
+        playMenu.addSeparator()
+        playMenu.addAction(gotoTimeAction)
 
         self.playAction.setEnabled(True)
         self.playAction.setVisible(True)
@@ -167,6 +180,8 @@ class MainWindow(QMainWindow):
         Store the settings
         """
         qset = QSettings()
+        qset.setValue("Animation/FPS",
+                QVariant(data.settings["Animation/FPS"]))
         qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("MainWindow/Position", QVariant(self.pos()))
         qset.setValue("Plot/xGridEnabled",
@@ -301,18 +316,6 @@ class MainWindow(QMainWindow):
         """
         pass
 
-    def plotFrame(self):
-        """
-        Plot the data at the current time
-        """
-        frames = {}
-        for key, item in self.datasets.iteritems():
-            frames[key] = item.frame(
-                    max(self.times[key].searchsorted(self.time) - 1, 0))
-
-        tstring = "t = " + str(self.time).rjust(self.rjustSize)
-        self.plotwidget.plotFrame(frames, tstring)
-
     def plotSettingsSlot(self):
         """
         Modifies the plot's settings
@@ -321,6 +324,16 @@ class MainWindow(QMainWindow):
         self.connect(pltsettings, SIGNAL("changed"),
                 self.plotwidget.applySettings)
         pltsettings.show()
+
+    def FPSEditSlot(self):
+        """
+        Sets the FPS
+        """
+        fps, ok = QInputDialog.getDouble(self, "Number of frames per second",
+                "FPS", data.settings["Animation/FPS"], 1)
+        if ok and fps != data.settings["Animation/FPS"]:
+            data.settings["Animation/FPS"] = fps
+            self.timer.setInterval(1000.0/data.settings["Animation/FPS"])
 
 ###############################################################################
 # Play menu
@@ -393,6 +406,18 @@ class MainWindow(QMainWindow):
             self.time = self.tfinal
             self.plotFrame()
 
+    def gotoTimeSlot(self):
+        """
+        Go to a given time
+        """
+        time, ok = QInputDialog.getDouble(self, "Go to time...",
+                "Choose a time in the interval [%g, %g]" % (self.tinit,
+                    self.tfinal),
+                self.time, self.tinit, self.tfinal)
+        if ok and self.time != time:
+            self.time = time
+            self.plotFrame()
+
 ###############################################################################
 # Help menu
 ###############################################################################
@@ -413,13 +438,29 @@ class MainWindow(QMainWindow):
             "<p>Copyright (c) 2011 Massimiliano Leoni and David Radice</p>"
             "<p>Distributed under the GPLv3 license.</p>")
 
+###############################################################################
+# Visualization routines
+###############################################################################
+
+    def plotFrame(self):
+        """
+        Plot the data at the current time
+        """
+        frames = {}
+        for key, item in self.datasets.iteritems():
+            frames[key] = item.frame(
+                    max(self.times[key].searchsorted(self.time) - 1, 0))
+
+        tstring = "t = " + str(self.time).rjust(self.rjustSize)
+        self.plotwidget.plotFrame(frames, tstring)
+
     def timeout(self):
         """
         Update the plot
         """
         self.time += self.timestep
         if(self.time > self.tfinal):
-            self.timer.stop()
+            self.pauseSlot()
         else:
             self.plotFrame()
 
