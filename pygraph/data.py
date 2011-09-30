@@ -2,6 +2,10 @@
 Shared application data
 """
 settings = {
+        "Plot/legendFontSize": 8,
+        "Plot/legendTextLength": 30,
+        "Plot/font": "Monospace",
+        "Plot/titleFontSize": 10,
         "Plot/xMin": 0,
         "Plot/xMax": 1,
         "Plot/yMin": 0,

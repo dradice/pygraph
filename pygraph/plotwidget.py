@@ -5,6 +5,12 @@ import pygraph.data as data
 
 from copy import deepcopy
 
+def shortText(text, length):
+    if len(text) < length:
+        return text
+    else:
+        return "..." + text[-length+3:-1] + text[-1]
+
 class PlotWidget(QwtPlot):
     """
         a class that represents a plot
@@ -25,13 +31,13 @@ class PlotWidget(QwtPlot):
         self.grid = QwtPlotGrid()
         self.grid.attach(self)
 
-        # Using a name in legend: 
+        # Using a name in legend:
         # all the work was adding "key" as an argument of QwtPlotCurve()
         # constructor at line ~128
         self.legend = QwtLegend()
         self.legend.setItemMode(Qwt.QwtLegend.CheckableItem)
         self.insertLegend(self.legend, Qwt.QwtPlot.RightLegend)
-        
+
         self.applySettings()
 
         self.zoomer = QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yLeft,
@@ -52,6 +58,7 @@ class PlotWidget(QwtPlot):
                 QwtPicker.NoSelection, QwtPlotPicker.CrossRubberBand,
                 QwtPicker.AlwaysOn, self.canvas())
         picker.setTrackerPen(QPen(Qt.red))
+        picker.setTrackerFont(QFont(data.settings["Plot/font"]))
 
         self.clist = deepcopy(data.colors)
 
@@ -72,6 +79,9 @@ class PlotWidget(QwtPlot):
                 (bool) Plot/xMinEnabled, Plot/yMinEnabled:  enable minor grids
 
         """
+        self.setAxisFont(QwtPlot.xBottom, QFont(data.settings["Plot/font"]))
+        self.setAxisFont(QwtPlot.yLeft, QFont(data.settings["Plot/font"]))
+
         interval_x = self.axisScaleDiv(QwtPlot.xBottom)
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
 
@@ -88,8 +98,14 @@ class PlotWidget(QwtPlot):
 
         self.setAxisScale(QwtPlot.xBottom, xmin, xmax)
         self.setAxisScale(QwtPlot.yLeft, ymin, ymax)
-        self.setAxisTitle(QwtPlot.xBottom, data.settings["Plot/xAxisTitle"])
-        self.setAxisTitle(QwtPlot.yLeft, data.settings["Plot/yAxisTitle"])
+
+        txt = QwtText(data.settings["Plot/xAxisTitle"])
+        txt.setFont(QFont(data.settings["Plot/font"]))
+        self.setAxisTitle(QwtPlot.xBottom, txt)
+
+        txt = QwtText(data.settings["Plot/yAxisTitle"])
+        txt.setFont(QFont(data.settings["Plot/font"]))
+        self.setAxisTitle(QwtPlot.yLeft, txt)
 
         self.grid.enableX(data.settings["Plot/xGridEnabled"])
         self.grid.enableY(data.settings["Plot/yGridEnabled"])
@@ -113,7 +129,7 @@ class PlotWidget(QwtPlot):
         #self.zoomer.setZoomBase(True)
 
 
-    def plotFrame(self, data, title=None):
+    def plotFrame(self, datasets, title=None):
         """
             this function plots a single frame from the 'data' dictionary
             data has the form {'name':(xp, yp)} where 'name' is the curve's
@@ -122,9 +138,13 @@ class PlotWidget(QwtPlot):
 
             WARNING: the 'name' entries have to be unique!!!
         """
-        for key, rawdata in data.iteritems():
+        for key, rawdata in datasets.iteritems():
             if not self.curves.has_key(key):
-                self.curves[key] = QwtPlotCurve(key)
+                ltext = shortText(key, data.settings["Plot/legendTextLength"])
+                ltext = QwtText(ltext)
+                ltext.setFont(QFont(data.settings["Plot/font"],
+                    data.settings["Plot/legendFontSize"]))
+                self.curves[key] = QwtPlotCurve(ltext)
                 self.curves[key].attach(self)
 
                 mycolor = self.clist.pop(0)
@@ -133,7 +153,7 @@ class PlotWidget(QwtPlot):
                 qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(mycolor)),
                         QPen(QColor(mycolor)), QSize(3, 3))
                 self.curves[key].setSymbol(qsymbol)
-                
+
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
         for litem in self.legend.legendItems():
@@ -141,7 +161,10 @@ class PlotWidget(QwtPlot):
             litem.setIdentifierWidth(24)
 
         if title is not None:
-            self.setTitle(title)
+            tstring = QwtText(title)
+            tstring.setFont(QFont(data.settings["Plot/font"],
+                data.settings["Plot/titleFontSize"]))
+            self.setTitle(tstring)
 
         self.replot()
 

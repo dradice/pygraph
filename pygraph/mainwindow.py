@@ -1,10 +1,11 @@
 import pygraph.data as data
 from pygraph.plotsettings import PlotSettings
+from pygraph.plotwidget import PlotWidget
 import pygraph.resources
-from pygraph.player import Player
 
-from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QFileDialog,\
+from PyQt4.Qt import SIGNAL, QAction, QIcon, QMainWindow, QFileDialog, \
         QPoint, QSettings, QString, QSize, QTimer, QVariant, QMessageBox
+import numpy
 import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
@@ -18,22 +19,32 @@ class MainWindow(QMainWindow):
 
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
-    * index      : a dictionary {filename: idx} storing the frame indices
-    * frames     : a dictionary {filename: frame} storing the current frame
     * plotwidget : the plot widget
+    * playAction : the "play" action
+    * pauseAction: the "pause" action
+    * rjustSize  : maximum length of the "time" string
     * tfinal     : final time
     * time       : current (physical) time
+    * times      : a dictionary {filename: time} storing the time frames of
+                   each dataset
     * timer      : QTimer()
     * timestep   : timestep
+    * tinit      : initial time
     """
     datasets = {}
-    indices = {}
-    frames = {}
+    playAction = None
+    pauseAction = None
     plotwidget = None
     tfinal = 0
     time = 0
+    times = {}
     timer = None
     timestep = sys.float_info.max
+    tinit = 0
+
+###############################################################################
+# Initialization methods
+###############################################################################
 
     def __init__(self, args=None, options=None, parent=None):
         """
@@ -54,8 +65,7 @@ class MainWindow(QMainWindow):
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
-            self.indices[fname] = 0
-            self.frames[fname] = self.datasets[fname].frame(0)
+            self.times[fname] = numpy.array(self.datasets[fname].time)
 
         # Restore settings
         qset = QSettings()
@@ -73,14 +83,14 @@ class MainWindow(QMainWindow):
             "Plot/yGridEnabled", QVariant(QString(str(
                 data.settings["Plot/yGridEnabled"])))).toString() == 'True'
 
-        # I need the timer to be created before the player is
         self.timer = QTimer()
+        self.timer.setInterval(500)
 
         # Create plot
-        self.player = Player(self)
-        self.setCentralWidget(self.player)
+        self.plotwidget = PlotWidget(self)
+        self.setCentralWidget(self.plotwidget)
 
-        # Actions
+        # Basic actions
         importDataAction = self.createAction("&Import...", self.importDataSlot,
                 "Ctrl+I", "document-open", "Import a data file")
         exportDataAction = self.createAction("&Export...", self.exportFrameSlot,
@@ -89,13 +99,29 @@ class MainWindow(QMainWindow):
                 "Ctrl+Q", "system-log-out", "Close the application")
 
         dataEditAction = self.createAction("&Data...", self.dataEditSlot,
-                "Ctrl+E", None, "Edit the data")
+                "Ctrl+D", None, "Edit the data")
         plotSettingsAction = self.createAction("&Plot...",
-                self.plotSettingsSlot, "Ctrl+P", None, "Plot preferences")
+                self.plotSettingsSlot, "Ctrl+O", None, "Plot preferences")
 
         helpAboutAction = self.createAction("&About pygraph", self.aboutSlot)
         helpHelpAction = self.createAction("&Contents", self.helpSlot,
                 "Ctrl+H", "help-browser")
+
+        # Controls actions
+        self.playAction = self.createAction("&Play", self.playSlot,
+                "Space", "media-playback-start", "Visualize the data")
+        self.pauseAction = self.createAction("&Pause", self.pauseSlot,
+                "Space", "media-playback-pause", "Pause the visualization")
+        stepBackwardAction = self.createAction("Step &Backward",
+                self.stepBackwardSlot, "Left", "media-step-backward",
+                "Go back of one frame")
+        stepForwardAction = self.createAction("Step &Forward",
+                self.stepForwardSlot, "Right", "media-step-forward",
+                "Advance of one frame")
+        gotoStartAction = self.createAction("&Start", self.gotoStartSlot,
+                "Ctrl+Left", "media-skip-backward", "Goto the first frame")
+        gotoEndAction = self.createAction("&End", self.gotoEndSlot,
+                "Ctrl+Right", "media-skip-forward", "Goto the last frame")
 
         # File menu
         fileMenu = self.menuBar().addMenu("&File")
@@ -109,6 +135,21 @@ class MainWindow(QMainWindow):
         editMenu.addAction(dataEditAction)
         editMenu.addAction(plotSettingsAction)
 
+        # Play menu
+        playMenu = self.menuBar().addMenu("&Play")
+        playMenu.addAction(self.playAction)
+        playMenu.addAction(self.pauseAction)
+        playMenu.addSeparator()
+        playMenu.addAction(gotoStartAction)
+        playMenu.addAction(stepBackwardAction)
+        playMenu.addAction(stepForwardAction)
+        playMenu.addAction(gotoEndAction)
+
+        self.playAction.setEnabled(True)
+        self.playAction.setVisible(True)
+        self.pauseAction.setEnabled(False)
+        self.pauseAction.setVisible(False)
+
         # Help menu
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(helpHelpAction)
@@ -116,11 +157,9 @@ class MainWindow(QMainWindow):
 
         if(len(self.datasets) > 0):
             self.setLimits()
-            self.setTime()
-            self.setTimeStep()
+            self.setTimer()
             self.plotFrame()
 
-        #self.timer.start()
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
     def closeEvent(self, event):
@@ -156,74 +195,6 @@ class MainWindow(QMainWindow):
             action.setCheckable(True)
         return action
 
-    def importDataSlot(self):
-        """
-        Import data using the GUI
-        """
-        fileFilters = ""
-        for key, value in data.formats.iteritems():
-            fileFilters += ";;" + key
-        filterString = fileFilters[2:]
-
-        dialog = QFileDialog(self)
-        dialog.setDirectory(os.curdir)
-        dialog.setNameFilter(filterString)
-        dialog.selectNameFilter("(*.asc)")
-        dialog.setFileMode(QFileDialog.ExistingFile)
-        if dialog.exec_():
-            files = dialog.selectedFiles()
-            fileName  = str(files.first())
-            fileFilter = str(dialog.selectedNameFilter())
-
-            fileType = data.formats[fileFilter]
-            if fileType == 'xg':
-                self.datasets[fileName] = xg.parsefile(fileName)
-            elif fileType == "asc":
-                self.datasets[fileName] = asc.parse_1D_file(fileName)
-            elif fileType == "h5":
-                self.datasets[fileName] = h5.parse_1D_file(fileName)
-            self.indices[fileName] = 0
-            self.frames[fileName] = self.datasets[fileName].frame(0)
-
-        self.setLimits()
-        self.setTime()
-        self.setTimeStep()
-        self.plotFrame()
-
-    def exportFrameSlot(self):
-        """
-        Exports a data frame in ASCII format or as an image
-        """
-        pass
-
-    def dataEditSlot(self):
-        """
-        Rescale/shift the data
-        """
-        pass
-
-    def plotFrame(self):
-        """
-        Plot the data at the current time
-        """
-        for key, item in self.datasets.iteritems():
-            try:
-                if item.time[self.indices[key] + 1] >= self.time:
-                    self.indices[key] += 1
-                    self.frames[key] = item.frame(self.indices[key])
-            except IndexError:
-                pass
-        self.player.plotwidget.plotFrame(self.frames)
-
-    def plotSettingsSlot(self):
-        """
-        Modifies the plot's settings
-        """
-        pltsettings = PlotSettings(self)
-        self.connect(pltsettings, SIGNAL("changed"),
-                self.player.plotwidget.applySettings)
-        pltsettings.show()
-
     def setLimits(self):
         """
         Compute the optimial size and location of the axis
@@ -245,21 +216,19 @@ class MainWindow(QMainWindow):
         data.settings['Plot/yMin'] = ymin - 0.1*size
         data.settings['Plot/yMax'] = ymax + 0.1*size
 
-        self.player.plotwidget.applySettings()
-        # Reset the zoomer
-        self.player.plotwidget.zoomer.setZoomBase(True)
+        self.plotwidget.applySettings()
+        self.plotwidget.resetZoomer()
 
-    def setTime(self):
+    def setTimer(self):
         """
-        Initialize time
+        Computes initial and final time, as well as the timestep
         """
+        # Computes initial and final time
         self.tfinal = max([data.time[-1] for data in self.datasets.values()])
-        self.time = min([data.time[0] for data in self.datasets.values()])
+        self.tinit = min([data.time[0] for data in self.datasets.values()])
+        self.time = self.tinit
 
-    def setTimeStep(self):
-        """
-        Computes the optimal timestep
-        """
+        # Computes timestep
         self.timestep = sys.float_info.max
 
         for key, item in self.datasets.iteritems():
@@ -268,15 +237,165 @@ class MainWindow(QMainWindow):
             if len(dt) > 0:
                 self.timestep = min(self.timestep, min(dt))
 
-    def timeout(self):
+        # Computes maximum string lenght for the time
+        t = self.time
+        self.rjustSize = len(str(t))
+        while t < self.tfinal:
+            t += self.timestep
+            self.rjustSize = max(self.rjustSize, len(str(t)))
+        self.rjustSize += 1
+
+###############################################################################
+# File menu
+###############################################################################
+
+    def importDataSlot(self):
         """
-        Update the plot
+        Import data using the GUI
         """
-        self.time += self.timestep
-        if(self.time > self.tfinal):
-            self.timer.stop()
+        fileFilters = ""
+        for key, value in data.formats.iteritems():
+            fileFilters += ";;" + key
+        filterString = fileFilters[2:]
+
+        dialog = QFileDialog(self)
+        dialog.setDirectory(os.curdir)
+        dialog.setNameFilter(filterString)
+        dialog.selectNameFilter("(*.asc)")
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        if dialog.exec_():
+            files = dialog.selectedFiles()
+            fileName  = str(files.first())
+            fileFilter = str(dialog.selectedNameFilter())
+
+            try:
+                fileType = data.formats[fileFilter]
+                if fileType == 'xg':
+                    self.datasets[fileName] = xg.parsefile(fileName)
+                elif fileType == "asc":
+                    self.datasets[fileName] = asc.parse_1D_file(fileName)
+                elif fileType == "h5":
+                    self.datasets[fileName] = h5.parse_1D_file(fileName)
+                self.times[fileName] = numpy.array(self.datasets[fileName].time)
+            except:
+                QMessageBox.critical(self, "I/O Error",
+                        "Could not read %s" % fileName)
+
+        self.setLimits()
+        self.setTimer()
+        self.plotFrame()
+
+    def exportFrameSlot(self):
+        """
+        Exports a data frame in ASCII format or as an image
+        """
+        pass
+
+###############################################################################
+# Edit menu
+###############################################################################
+
+    def dataEditSlot(self):
+        """
+        Rescale/shift the data
+        """
+        pass
+
+    def plotFrame(self):
+        """
+        Plot the data at the current time
+        """
+        frames = {}
+        for key, item in self.datasets.iteritems():
+            frames[key] = item.frame(
+                    max(self.times[key].searchsorted(self.time) - 1, 0))
+
+        tstring = "t = " + str(self.time).rjust(self.rjustSize)
+        self.plotwidget.plotFrame(frames, tstring)
+
+    def plotSettingsSlot(self):
+        """
+        Modifies the plot's settings
+        """
+        pltsettings = PlotSettings(self)
+        self.connect(pltsettings, SIGNAL("changed"),
+                self.plotwidget.applySettings)
+        pltsettings.show()
+
+###############################################################################
+# Play menu
+###############################################################################
+
+    def updatePlayMenu(self):
+        """
+        Re-draw the "play" menu
+        """
+        self.playMenu.clear()
+        if self.timer.isActive():
+            self.playMenu.addAction(self.pauseAction)
         else:
+            self.playMenu.addAction(self.playAction)
+
+        self.playMenu.addSeparator()
+
+        for action in self.playMenuActions:
+            self.playMenu.addAction(action)
+
+    def playSlot(self):
+        """
+        Start visualizing the data
+        """
+        self.timer.start()
+        self.playAction.setEnabled(False)
+        self.playAction.setVisible(False)
+        self.pauseAction.setEnabled(True)
+        self.pauseAction.setVisible(True)
+
+    def pauseSlot(self):
+        """
+        Pause the visualization of the data
+        """
+        self.timer.stop()
+        self.playAction.setEnabled(True)
+        self.playAction.setVisible(True)
+        self.pauseAction.setEnabled(False)
+        self.pauseAction.setVisible(False)
+
+    def stepBackwardSlot(self):
+        """
+        Visualize the previous frame
+        """
+        if self.time - self.timestep >= self.tinit:
+            self.time = self.time - self.timestep
             self.plotFrame()
+
+    def stepForwardSlot(self):
+        """
+        Visualize the next frame
+        """
+        if self.time + self.timestep <= self.tfinal:
+            self.time = self.time + self.timestep
+            self.plotFrame()
+
+    def gotoStartSlot(self):
+        """
+        Go to the first frame
+        """
+        if self.time != self.tinit:
+            self.time = self.tinit
+            self.plotFrame()
+
+    def gotoEndSlot(self):
+        """
+        Go to the last frame
+        """
+        if self.time != self.tfinal:
+            self.time = self.tfinal
+            self.plotFrame()
+
+###############################################################################
+# Help menu
+###############################################################################
 
     def helpSlot(self):
         """
@@ -293,4 +412,14 @@ class MainWindow(QMainWindow):
             "client for viewing 1D data files.</p>"
             "<p>Copyright (c) 2011 Massimiliano Leoni and David Radice</p>"
             "<p>Distributed under the GPLv3 license.</p>")
+
+    def timeout(self):
+        """
+        Update the plot
+        """
+        self.time += self.timestep
+        if(self.time > self.tfinal):
+            self.timer.stop()
+        else:
+            self.plotFrame()
 

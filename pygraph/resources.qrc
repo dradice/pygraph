@@ -9,6 +9,8 @@
 <file alias="media-playback-stop.svg">icons/media-playback-stop.svg</file>
 <file alias="media-skip-backward.svg">icons/media-skip-backward.svg</file>
 <file alias="media-skip-forward.svg">icons/media-skip-forward.svg</file>
+<file alias="media-step-backward.svg">icons/media-step-backward.svg</file>
+<file alias="media-step-forward.svg">icons/media-step-forward.svg</file>
 <file alias="system-log-out.svg">icons/system-log-out.svg</file>
 </qresource>
 </RCC>
