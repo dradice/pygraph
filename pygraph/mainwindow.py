@@ -3,9 +3,10 @@ from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 import pygraph.resources
 
-from PyQt4.Qt import SIGNAL, QAction, QInputDialog, QIcon, QMainWindow,\
-        QFileDialog, QPoint, QSettings, QString, QSize, QTimer,\
-        QVariant, QMessageBox
+from PyQt4.QtCore import Qt
+from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
+        QLineEdit, QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
+        QTimer, QVariant, QMessageBox
 import numpy
 import re
 import scidata.carpet.ascii as asc
@@ -168,6 +169,26 @@ class MainWindow(QMainWindow):
         helpMenu.addAction(helpHelpAction)
         helpMenu.addAction(helpAboutAction)
 
+        # Play toolbar
+        playToolbar = self.addToolBar("Play")
+        playToolbar.setFloatable(False)
+        playToolbar.setMovable(False)
+        playToolbar.setObjectName("PlayToolbar")
+        playToolbar.addAction(gotoStartAction)
+        playToolbar.addAction(stepBackwardAction)
+        playToolbar.addAction(self.playAction)
+        playToolbar.addAction(self.pauseAction)
+        playToolbar.addAction(stepForwardAction)
+        playToolbar.addAction(gotoEndAction)
+
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setTracking(True)
+        self.connect(self.slider, SIGNAL("valueChanged(int)"), self.sliderSlot)
+
+        playToolbar.addWidget(self.slider)
+
+        self.statusBar()
+
         if(len(self.datasets) > 0):
             self.setLimits()
             self.setTimer()
@@ -259,6 +280,10 @@ class MainWindow(QMainWindow):
             t += self.timestep
             self.rjustSize = max(self.rjustSize, len(str(t)))
         self.rjustSize += 1
+
+        self.nframes = int((self.tfinal - self.tinit) / self.timestep)
+        self.slider.setRange(0, self.nframes)
+        self.slider.setValue(0)
 
 ###############################################################################
 # File menu
@@ -439,6 +464,14 @@ class MainWindow(QMainWindow):
             "<p>Distributed under the GPLv3 license.</p>")
 
 ###############################################################################
+# Toolbar
+###############################################################################
+
+    def sliderSlot(self, value):
+        self.time = self.tinit + self.timestep*value
+        self.plotFrame()
+
+###############################################################################
 # Visualization routines
 ###############################################################################
 
@@ -450,6 +483,8 @@ class MainWindow(QMainWindow):
         for key, item in self.datasets.iteritems():
             frames[key] = item.frame(
                     max(self.times[key].searchsorted(self.time) - 1, 0))
+
+        self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 
         tstring = "t = " + str(self.time).rjust(self.rjustSize)
         self.plotwidget.plotFrame(frames, tstring)
