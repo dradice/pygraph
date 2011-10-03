@@ -15,7 +15,9 @@ class PlotSettings(QDialog):
         self.xMaxLabelLine = LabelLine("Max", currentSettings["Plot/xMax"])
         self.xTitleLabelLine = LabelLine("Title",
                 currentSettings["Plot/xAxisTitle"])
-        self.xGridCheck = QCheckBox("X Axis Grid")
+        self.xLogScale = QCheckBox("Log Scale")
+        self.xLogScale.setChecked(currentSettings["Plot/xLogScale"])
+        self.xGridCheck = QCheckBox("Grid")
         self.xGridCheck.setChecked(currentSettings["Plot/xGridEnabled"])
 
         xAxisLayout = QGridLayout()
@@ -23,14 +25,17 @@ class PlotSettings(QDialog):
         xAxisLayout.addWidget(self.xMinLabelLine, 1, 0, 1, 3)
         xAxisLayout.addWidget(self.xMaxLabelLine, 2, 0, 1, 3)
         xAxisLayout.addWidget(self.xTitleLabelLine, 3, 0, 1, 3)
-        xAxisLayout.addWidget(self.xGridCheck, 4, 0, 1, 3)
+        xAxisLayout.addWidget(self.xLogScale, 4, 0, 1, 3)
+        xAxisLayout.addWidget(self.xGridCheck, 5, 0, 1, 3)
 
         yAxisLabel = QLabel("Y Axis")
         self.yMinLabelLine = LabelLine("Min", currentSettings["Plot/yMin"])
         self.yMaxLabelLine = LabelLine("Max", currentSettings["Plot/yMax"])
         self.yTitleLabelLine = LabelLine("Title",
                 currentSettings["Plot/yAxisTitle"])
-        self.yGridCheck = QCheckBox("Y Axis Grid")
+        self.yLogScale = QCheckBox("Log Scale")
+        self.yLogScale.setChecked(currentSettings["Plot/xLogScale"])
+        self.yGridCheck = QCheckBox("Grid")
         self.yGridCheck.setChecked(currentSettings["Plot/yGridEnabled"])
 
         yAxisLayout = QGridLayout()
@@ -38,7 +43,8 @@ class PlotSettings(QDialog):
         yAxisLayout.addWidget(self.yMinLabelLine, 1, 0, 1, 3)
         yAxisLayout.addWidget(self.yMaxLabelLine, 2, 0, 1, 3)
         yAxisLayout.addWidget(self.yTitleLabelLine, 3, 0, 1, 3)
-        yAxisLayout.addWidget(self.yGridCheck, 4, 0, 1, 3)
+        yAxisLayout.addWidget(self.yLogScale, 4, 0, 1, 3)
+        yAxisLayout.addWidget(self.yGridCheck, 5, 0, 1, 3)
 
         applyButton = QPushButton("Apply")
         closeButton = QPushButton("Close")
@@ -73,13 +79,15 @@ class PlotSettings(QDialog):
                     self.xMinLabelLine.lineEdit.text().replace(",",".")),
                 "Plot/xMax":float(
                     self.xMaxLabelLine.lineEdit.text().replace(",",".")),
+                "Plot/xLogScale":self.xLogScale.isChecked(),
+                "Plot/xGridEnabled":self.xGridCheck.isChecked(),
                 "Plot/yMin":float(
                     self.yMinLabelLine.lineEdit.text().replace(",",".")),
                 "Plot/yMax":float(
                     self.yMaxLabelLine.lineEdit.text().replace(",",".")),
                 "Plot/xAxisTitle":unicode(self.xTitleLabelLine.lineEdit.text()),
                 "Plot/yAxisTitle":unicode(self.yTitleLabelLine.lineEdit.text()),
-                "Plot/xGridEnabled":self.xGridCheck.isChecked(),
+                "Plot/yLogScale":self.yLogScale.isChecked(),
                 "Plot/yGridEnabled":self.yGridCheck.isChecked()
                   }
             settings.update(plotSettings)

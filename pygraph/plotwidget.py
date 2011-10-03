@@ -91,6 +91,16 @@ class PlotWidget(QwtPlot):
         self.setAxisFont(QwtPlot.xBottom, QFont(data.settings["Plot/font"]))
         self.setAxisFont(QwtPlot.yLeft, QFont(data.settings["Plot/font"]))
 
+        if data.settings["Plot/xLogScale"]:
+            self.setAxisScaleEngine(QwtPlot.xBottom, QwtLog10ScaleEngine())
+        else:
+            self.setAxisScaleEngine(QwtPlot.xBottom, QwtLinearScaleEngine())
+
+        if data.settings["Plot/yLogScale"]:
+            self.setAxisScaleEngine(QwtPlot.yLeft, QwtLog10ScaleEngine())
+        else:
+            self.setAxisScaleEngine(QwtPlot.yLeft, QwtLinearScaleEngine())
+
         interval_x = self.axisScaleDiv(QwtPlot.xBottom)
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
 

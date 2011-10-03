@@ -7,14 +7,16 @@ settings = {
         "Plot/legendTextLength": 30,
         "Plot/font": "Monospace",
         "Plot/titleFontSize": 10,
+        "Plot/xAxisTitle": "x",
+        "Plot/xGridEnabled": False,
+        "Plot/xLogScale": False,
         "Plot/xMin": 0,
         "Plot/xMax": 1,
-        "Plot/yMin": 0,
-        "Plot/yMax": 1,
-        "Plot/xAxisTitle": "x",
         "Plot/yAxisTitle": "y",
-        "Plot/xGridEnabled": False,
-        "Plot/yGridEnabled": False
+        "Plot/yGridEnabled": False,
+        "Plot/yLogScale": False,
+        "Plot/yMin": 0,
+        "Plot/yMax": 1
         }
 
 colors = [
