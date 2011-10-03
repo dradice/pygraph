@@ -321,15 +321,45 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "I/O Error",
                         "Could not read %s" % fileName)
 
-        self.setLimits()
-        self.setTimer()
-        self.plotFrame()
+            self.setLimits()
+            self.setTimer()
+            self.plotFrame()
 
     def exportFrameSlot(self):
         """
         Exports a data frame in ASCII format or as an image
         """
-        pass
+        filterString = "Gnuplot ASCII (*.dat)"
+
+        dialog = QFileDialog(self)
+        dialog.setDirectory(os.curdir)
+        dialog.setNameFilter(filterString)
+        dialog.selectNameFilter("*.dat")
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setConfirmOverwrite(True)
+
+        if dialog.exec_():
+            files = dialog.selectedFiles()
+            fileName = str(files.first())
+
+            frames = {}
+            for key, item in self.datasets.iteritems():
+                idx = max(self.times[key].searchsorted(self.time) - 1, 0)
+                frames[key] = item.frame(idx)
+
+            L = []
+            idx = 0
+            for key, item in frames.iteritems():
+                L.append("# Index " + str(idx) + ": " + key + ' @ t = ' +
+                        str(item.time) + '\n')
+                L += item.format()
+                L.append("\n\n")
+                idx += 1
+
+            f = open(fileName, "w")
+            f.writelines(L[:-1])
+            f.close()
 
 ###############################################################################
 # Edit menu
