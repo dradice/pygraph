@@ -1,6 +1,7 @@
 import pygraph.data as data
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
+from pygraph.dataeditor import DataEditor
 import pygraph.resources
 
 from PyQt4.QtCore import Qt
@@ -369,7 +370,8 @@ class MainWindow(QMainWindow):
         """
         Rescale/shift the data
         """
-        pass
+        dataedit = DataEditor(self.datasets, self)
+        dataedit.show()
 
     def plotSettingsSlot(self):
         """
