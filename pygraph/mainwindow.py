@@ -1,17 +1,20 @@
+from copy import deepcopy
 import pygraph.data as data
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor
+from numpy import *
+
 import pygraph.resources
 
 from PyQt4.QtCore import Qt
 from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
-        QLineEdit, QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
+        QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
         QTimer, QVariant, QMessageBox
-import numpy
 import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
+import scidata.monodataset as monodataset
 import scidata.xgraph as xg
 import sys
 import os
@@ -25,6 +28,8 @@ class MainWindow(QMainWindow):
     * plotwidget : the plot widget
     * playAction : the "play" action
     * pauseAction: the "pause" action
+    * rawdatasets: a dictionary {filename: monodataset} storing the original
+                   data
     * rjustSize  : maximum length of the "time" string
     * tfinal     : final time
     * time       : current (physical) time
@@ -33,17 +38,21 @@ class MainWindow(QMainWindow):
     * timer      : QTimer()
     * timestep   : timestep
     * tinit      : initial time
+    * transforms : a dictionary {filename: (expr, expr)} storing the
+                   transformations
     """
     datasets = {}
     playAction = None
     pauseAction = None
     plotwidget = None
+    rawdatasets = {}
     tfinal = 0
     time = 0
     times = {}
     timer = None
     timestep = sys.float_info.max
     tinit = 0
+    transforms = {}
 
 ###############################################################################
 # Initialization methods
@@ -60,15 +69,17 @@ class MainWindow(QMainWindow):
             name_re = re.match(r".+\.(\w+)$", fname)
             ext = name_re.group(1)
             if ext == "xg" or ext == "yg":
-                self.datasets[fname] = xg.parsefile(fname)
+                self.rawdatasets[fname] = xg.parsefile(fname)
             elif ext == "h5":
-                self.datasets[fname] = h5.parse_1D_file(fname)
+                self.rawdatasets[fname] = h5.parse_1D_file(fname)
             elif ext == "asc":
-                self.datasets[fname] = asc.parse_1D_file(fname)
+                self.rawdatasets[fname] = asc.parse_1D_file(fname)
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
-            self.times[fname] = numpy.array(self.datasets[fname].time)
+            self.times[fname] = array(self.rawdatasets[fname].time)
+            self.transforms[fname] = ('x', 'y')
+        self.updateData()
 
         # Restore settings
         qset = QSettings()
@@ -232,6 +243,17 @@ class MainWindow(QMainWindow):
             action.setCheckable(True)
         return action
 
+    def updateData(self):
+        """
+        Computes the working data from the initial data
+        """
+        for key, item in self.rawdatasets.iteritems():
+            self.datasets[key] = deepcopy(item)
+            f = eval('lambda x, y:' + self.transforms[key][0])
+            g = eval('lambda x, y:' + self.transforms[key][1])
+            self.datasets[key].data_x = f(item.data_x, item.data_y)
+            self.datasets[key].data_y = g(item.data_x, item.data_y)
+
     def setLimits(self):
         """
         Compute the optimial size and location of the axis
@@ -312,16 +334,18 @@ class MainWindow(QMainWindow):
             try:
                 fileType = data.formats[fileFilter]
                 if fileType == 'xg':
-                    self.datasets[fileName] = xg.parsefile(fileName)
+                    self.rawdatasets[fileName] = xg.parsefile(fileName)
                 elif fileType == "asc":
-                    self.datasets[fileName] = asc.parse_1D_file(fileName)
+                    self.rawdatasets[fileName] = asc.parse_1D_file(fileName)
                 elif fileType == "h5":
-                    self.datasets[fileName] = h5.parse_1D_file(fileName)
-                self.times[fileName] = numpy.array(self.datasets[fileName].time)
+                    self.rawdatasets[fileName] = h5.parse_1D_file(fileName)
+                self.times[fileName] = array(self.rawdatasets[fileName].time)
+                self.transforms[fileName] = ('x', 'y')
             except:
                 QMessageBox.critical(self, "I/O Error",
                         "Could not read %s" % fileName)
 
+            self.updateData()
             self.setLimits()
             self.setTimer()
             self.plotFrame()
@@ -370,8 +394,17 @@ class MainWindow(QMainWindow):
         """
         Rescale/shift the data
         """
-        dataedit = DataEditor(self.datasets, self)
+        dataedit = DataEditor(self.transforms, self.rawdatasets, self)
+        self.connect(dataedit, SIGNAL("changed"), self.updateDataSlot)
         dataedit.show()
+
+    def updateDataSlot(self):
+        """
+        Transform the data
+        """
+        self.updateData()
+        self.setLimits()
+        self.plotFrame()
 
     def plotSettingsSlot(self):
         """
