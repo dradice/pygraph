@@ -11,6 +11,8 @@ app.setApplicationName("pygraph")
 
 usage = "%prog [options] data0 [data1 [data2 [...]]]"
 parser = OptionParser(usage)
+parser.add_option("-l", "--log", action="store_true", default=False,
+        dest="logscale", help="Use logaritmic scale")
 (options, args) = parser.parse_args()
 
 window = MainWindow(args, options)

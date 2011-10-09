@@ -115,6 +115,9 @@ class PlotWidget(QwtPlot):
         ymin = data.settings["Plot/yMin"]
         ymax = data.settings["Plot/yMax"]
 
+        if data.settings["Plot/yLogScale"]:
+            ymin = max(ymin, data.settings["Plot/yLogScaleMin"])
+
         self.setAxisScale(QwtPlot.xBottom, xmin, xmax)
         self.setAxisScale(QwtPlot.yLeft, ymin, ymax)
 

@@ -10,6 +10,8 @@ class PlotSettings(QDialog):
         self.parent = parent
         currentSettings = settings.copy()
 
+        self.setWindowTitle("Plot Settings")
+
         xAxisLabel = QLabel("X Axis")
         self.xMinLabelLine = LabelLine("Min", currentSettings["Plot/xMin"])
         self.xMaxLabelLine = LabelLine("Max", currentSettings["Plot/xMax"])
@@ -34,7 +36,7 @@ class PlotSettings(QDialog):
         self.yTitleLabelLine = LabelLine("Title",
                 currentSettings["Plot/yAxisTitle"])
         self.yLogScale = QCheckBox("Log Scale")
-        self.yLogScale.setChecked(currentSettings["Plot/xLogScale"])
+        self.yLogScale.setChecked(currentSettings["Plot/yLogScale"])
         self.yGridCheck = QCheckBox("Grid")
         self.yGridCheck.setChecked(currentSettings["Plot/yGridEnabled"])
 

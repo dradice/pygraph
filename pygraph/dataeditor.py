@@ -3,6 +3,9 @@ from PyQt4.QtCore import *
 
 from numpy import *
 
+def D(x):
+    q = diff(x)
+    return array([q[0]] + list(q))
 
 class DataEditor(QDialog):
     """
@@ -21,6 +24,8 @@ class DataEditor(QDialog):
     previous = None
     def __init__(self, transforms, rawdatasets, parent=None):
         super(DataEditor, self).__init__(parent)
+
+        self.setWindowTitle(QString("Data Editor"))
 
         self.transforms = transforms
 

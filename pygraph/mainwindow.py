@@ -2,7 +2,7 @@ from copy import deepcopy
 import pygraph.data as data
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
-from pygraph.dataeditor import DataEditor
+from pygraph.dataeditor import DataEditor, D
 from numpy import *
 
 import pygraph.resources
@@ -14,7 +14,6 @@ from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
 import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
-import scidata.monodataset as monodataset
 import scidata.xgraph as xg
 import sys
 import os
@@ -102,6 +101,8 @@ class MainWindow(QMainWindow):
 
         self.timer = QTimer()
         self.timer.setInterval(1000.0/data.settings["Animation/FPS"])
+
+        data.settings["Plot/yLogScale"] = options.logscale
 
         # Create plot
         self.plotwidget = PlotWidget(self)

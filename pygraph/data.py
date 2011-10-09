@@ -1,3 +1,5 @@
+import sys
+
 """
 Shared application data
 """
@@ -15,6 +17,7 @@ settings = {
         "Plot/yAxisTitle": "y",
         "Plot/yGridEnabled": False,
         "Plot/yLogScale": False,
+        "Plot/yLogScaleMin": sys.float_info.epsilon,
         "Plot/yMin": 0,
         "Plot/yMax": 1
         }
