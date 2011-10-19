@@ -32,8 +32,6 @@ class MainWindow(QMainWindow):
     * rjustSize  : maximum length of the "time" string
     * tfinal     : final time
     * time       : current (physical) time
-    * times      : a dictionary {filename: time} storing the time frames of
-                   each dataset
     * timer      : QTimer()
     * timestep   : timestep
     * tinit      : initial time
@@ -47,7 +45,6 @@ class MainWindow(QMainWindow):
     rawdatasets = {}
     tfinal = 0
     time = 0
-    times = {}
     timer = None
     timestep = sys.float_info.max
     tinit = 0
@@ -76,7 +73,6 @@ class MainWindow(QMainWindow):
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
-            self.times[fname] = array(self.rawdatasets[fname].time)
             self.transforms[fname] = ('x', 'y')
         self.updateData()
 
@@ -340,7 +336,6 @@ class MainWindow(QMainWindow):
                     self.rawdatasets[fileName] = asc.parse_1D_file(fileName)
                 elif fileType == "h5":
                     self.rawdatasets[fileName] = h5.parse_1D_file(fileName)
-                self.times[fileName] = array(self.rawdatasets[fileName].time)
                 self.transforms[fileName] = ('x', 'y')
             except:
                 QMessageBox.critical(self, "I/O Error",
@@ -371,8 +366,7 @@ class MainWindow(QMainWindow):
 
             frames = {}
             for key, item in self.datasets.iteritems():
-                idx = max(self.times[key].searchsorted(self.time) - 1, 0)
-                frames[key] = item.frame(idx)
+                frames[key] = item.find_frame(self.time)
 
             L = []
             idx = 0
@@ -547,8 +541,7 @@ class MainWindow(QMainWindow):
         """
         frames = {}
         for key, item in self.datasets.iteritems():
-            frames[key] = item.frame(
-                    max(self.times[key].searchsorted(self.time) - 1, 0))
+            frames[key] = item.find_frame(self.time)
 
         self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 

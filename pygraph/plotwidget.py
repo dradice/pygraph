@@ -177,7 +177,7 @@ class PlotWidget(QwtPlot):
                 self.curves[key].setSymbol(qsymbol)
 
                 self.hidden[key] = False
-                self.litems[key] = self.legend.legendItems()[-1]
+                self.litems[key] = self.legend.find(self.curves[key])
             else:
                 self.hidden[key] = not self.curves[key].isVisible()
 
