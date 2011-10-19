@@ -1,10 +1,14 @@
 import sys
 
+from PyQt4.Qt import QPoint, QSize
+
 """
 Shared application data
 """
 settings = {
         "Animation/FPS": 2,
+        "DataEditor/Position": QPoint(0,0),
+        "DataEditor/Size": QSize(500,300),
         "Plot/legendFontSize": 8,
         "Plot/legendTextLength": 30,
         "Plot/font": "Monospace",
@@ -19,7 +23,9 @@ settings = {
         "Plot/yLogScale": False,
         "Plot/yLogScaleMin": sys.float_info.epsilon,
         "Plot/yMin": 0,
-        "Plot/yMax": 1
+        "Plot/yMax": 1,
+        "PlotSettings/Position": QPoint(0,0),
+        "PlotSettings/Size": QSize(500,300)
         }
 
 colors = [

@@ -1,6 +1,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
+import pygraph.data as data
 from numpy import *
 
 def D(x):
@@ -26,6 +27,8 @@ class DataEditor(QDialog):
         super(DataEditor, self).__init__(parent)
 
         self.setWindowTitle(QString("Data Editor"))
+        self.resize(data.settings["DataEditor/Size"])
+        self.move(data.settings["DataEditor/Position"])
 
         self.transforms = transforms
 
@@ -156,6 +159,11 @@ class DataEditor(QDialog):
         self.previous = previous
         self.xTransf.setText(current.transf[0])
         self.yTransf.setText(current.transf[1])
+
+    def closeEvent(self, event):
+        """Store the settings"""
+        data.settings.update({"DataEditor/Position": self.pos()})
+        data.settings.update({"DataEditor/Size": self.size()})
 
 class ListObj(QListWidgetItem):
     """a List Widget equipped with extra infos"""

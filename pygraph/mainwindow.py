@@ -88,12 +88,23 @@ class MainWindow(QMainWindow):
         position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
         self.move(position.toPoint())
 
+        data.settings["DataEditor/Position"] = qset.value("DataEditor/Position",
+                QVariant(data.settings["DataEditor/Position"])).toPoint()
+        data.settings["DataEditor/Size"] = qset.value("DataEditor/Size",
+                QVariant(data.settings["DataEditor/Size"])).toSize()
+
         data.settings["Plot/xGridEnabled"] = qset.value(
             "Plot/xGridEnabled", QVariant(QString(str(
                 data.settings["Plot/xGridEnabled"])))).toString() == 'True'
         data.settings["Plot/yGridEnabled"] = qset.value(
             "Plot/yGridEnabled", QVariant(QString(str(
                 data.settings["Plot/yGridEnabled"])))).toString() == 'True'
+
+        data.settings["PlotSettings/Position"] = qset.value(
+                "PlotSettings/Position", QVariant(
+                    data.settings["PlotSettings/Position"])).toPoint()
+        data.settings["PlotSettings/Size"] = qset.value("PlotSettings/Size",
+                QVariant(data.settings["PlotSettings/Size"])).toSize()
 
         self.timer = QTimer()
         self.timer.setInterval(1000.0/data.settings["Animation/FPS"])
@@ -116,7 +127,7 @@ class MainWindow(QMainWindow):
         dataEditAction = self.createAction("&Data...", self.dataEditSlot,
                 "Ctrl+D", None, "Edit the data")
         plotSettingsAction = self.createAction("&Plot...",
-                self.plotSettingsSlot, "Ctrl+O", None, "Plot preferences")
+                self.plotSettingsSlot, "Ctrl+P", None, "Plot preferences")
         FPSEditAction = self.createAction("&FPS...", self.FPSEditSlot,
                 "Ctrl+F", None, "Set the number of frames per second")
 
@@ -212,12 +223,20 @@ class MainWindow(QMainWindow):
         qset = QSettings()
         qset.setValue("Animation/FPS",
                 QVariant(data.settings["Animation/FPS"]))
+        qset.setValue("DataEditor/Position",
+                QVariant(data.settings["DataEditor/Position"]))
+        qset.setValue("DataEditor/Size",
+                QVariant(data.settings["DataEditor/Size"]))
         qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("MainWindow/Position", QVariant(self.pos()))
         qset.setValue("Plot/xGridEnabled",
                 str(data.settings["Plot/xGridEnabled"]))
         qset.setValue("Plot/yGridEnabled",
                 str(data.settings["Plot/yGridEnabled"]))
+        qset.setValue("PlotSettings/Position",
+                QVariant(data.settings["PlotSettings/Position"]))
+        qset.setValue("PlotSettings/Size",
+                QVariant(data.settings["PlotSettings/Size"]))
 
     def createAction(self, text, slot=None, shortcut=None, icon=None,
             tip=None, checkable=False, signal="triggered()"):

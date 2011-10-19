@@ -11,6 +11,8 @@ class PlotSettings(QDialog):
         currentSettings = settings.copy()
 
         self.setWindowTitle("Plot Settings")
+        self.resize(settings["PlotSettings/Size"])
+        self.move(settings["PlotSettings/Position"])
 
         xAxisLabel = QLabel("X Axis")
         self.xMinLabelLine = LabelLine("Min", currentSettings["Plot/xMin"])
@@ -100,6 +102,11 @@ class PlotSettings(QDialog):
                                "the data you specified.\n"
                                "Please check typos and try again."
                                 )
+
+    def closeEvent(self, event):
+        """Store the settings"""
+        settings.update({"PlotSettings/Position": self.pos()})
+        settings.update({"PlotSettings/Size": self.size()})
 
 class LabelLine(QWidget):
     """A class that represents a widget for a label and its line edit
