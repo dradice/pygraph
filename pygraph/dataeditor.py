@@ -17,16 +17,11 @@ class DataEditor(QDialog):
     yTransf = None
     transforms = None
 
-# Note: All single-commented lines can be deleted
-# Double-commented lines are experimental features currently not working
-#    xDirty = False
-#    yDirty = False
     xOldText = ''
     yOldText = ''
-
-    clean = 1
-
+    clean = []
     previous = None
+
     def __init__(self, transforms, rawdatasets, parent=None):
         super(DataEditor, self).__init__(parent)
 
@@ -45,6 +40,7 @@ class DataEditor(QDialog):
 
         for it in items:
             self.dataList.addItem(it)
+            self.clean += 2 * [1]
         self.dataList.setCurrentItem(items[0])
 
         xLabel = QLabel("x' = ")
@@ -100,8 +96,6 @@ class DataEditor(QDialog):
                 self.xTransfValidate)
         self.connect(self.yTransf, SIGNAL("editingFinished()"),
                 self.yTransfValidate)
-#        self.connect(self.dataList,SIGNAL("itemSelectionChanged()"),
-#                self.selectionChangedSlot)
         self.connect(self.xCheck, SIGNAL("clicked()"), self.ParsingError)
         self.connect(self.yCheck, SIGNAL("clicked()"), self.ParsingError)
 
@@ -110,8 +104,7 @@ class DataEditor(QDialog):
 
     def applyTransf(self):
         """docstring for applyTransf"""
-        print "all clear"
-        if self.clean:
+        if all(self.clean):
             tnew = {}
             for idx in range(self.dataList.count()):
                 dataset = self.dataList.item(idx)
@@ -129,6 +122,7 @@ class DataEditor(QDialog):
     def xTransfValidate(self):
         """Validate x-axis transformation"""
         i = self.dataList.currentItem()
+        row = self.dataList.currentRow()
 
         try:
             s = 'lambda x,y:' + str(self.xTransf.text())
@@ -136,16 +130,16 @@ class DataEditor(QDialog):
             p = f(i.data.data_x, i.data.data_y)
             i.transf = (str(self.xTransf.text()), i.transf[1])
             self.xCheck.setVisible(False)
-#            self.xDirty = False
-            self.clean *= 1
+            self.clean[row] = 1
         except:
             self.xCheck.setVisible(True)
             i.transf = (str(self.xTransf.text()), i.transf[1])
-            self.clean *= 0
-
+            self.clean[row] = 0
+            
     def yTransfValidate(self):
         """Validate y-axis transformation"""
         i = self.dataList.currentItem()
+        row = self.dataList.currentRow()
 
         try:
             s = 'lambda x,y:' + str(self.yTransf.text())
@@ -153,12 +147,11 @@ class DataEditor(QDialog):
             p = f(i.data.data_x, i.data.data_y)
             i.transf = (i.transf[0], str(self.yTransf.text()))
             self.yCheck.setVisible(False)
-#            self.yDirty = False
-            self.clean *= 1
+            self.clean[row + 1] = 1 
         except:
             self.yCheck.setVisible(True)
             i.transf = (i.transf[0], str(self.yTransf.text()))
-            self.clean *= 0
+            self.clean[row + 1] = 0
 
     def ParsingError(self):
         """docstring for ParsingError"""
@@ -166,26 +159,6 @@ class DataEditor(QDialog):
                              "This line could not be read and might contain "
                              "typing errors.")
 
-#    def selectionChangedSlot(self):
-#        pass
-#        """
-#        Revert the selection if the previous transformations were not correct
-#        """
-#        if self.xDirty:
-#            print "xexecuting"
-#            self.dataList.setCurrentItem(self.previous)
-#            self.xTransf.setText(self.xOldText)
-#            self.yTransf.setText(self.yOldText)
-#            self.xTransf.setFocus(Qt.OtherFocusReason)
-#            self.xTransf.selectAll()
-#        if self.yDirty:
-#            print "yexecuting"
-#            self.dataList.setCurrentItem(self.previous)
-#            self.xTransf.setText(self.xOldText)
-#            self.yTransf.setText(self.yOldText)
-#            self.yTransf.setFocus(Qt.OtherFocusReason)
-#            self.yTransf.selectAll()
-#
     def update_Ui(self, current, previous):
         """Updates the GUI"""
         self.previous = previous
