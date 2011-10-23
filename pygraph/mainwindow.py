@@ -408,9 +408,14 @@ class MainWindow(QMainWindow):
         """
         Rescale/shift the data
         """
-        dataedit = DataEditor(self.transforms, self.rawdatasets, self)
-        self.connect(dataedit, SIGNAL("changed"), self.updateDataSlot)
-        dataedit.show()
+        if len(self.datasets.keys()) > 0:
+            dataedit = DataEditor(self.transforms, self.rawdatasets, self)
+            self.connect(dataedit, SIGNAL("changed"), self.updateDataSlot)
+            dataedit.show()
+        else:
+            QMessageBox.warning(self, "No data loaded",
+                "You have to import at least one dataset before you can "
+                                "edit data.")
 
     def updateDataSlot(self):
         """

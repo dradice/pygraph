@@ -17,10 +17,14 @@ class DataEditor(QDialog):
     yTransf = None
     transforms = None
 
-    xDirty = False
-    yDirty = False
+# Note: All single-commented lines can be deleted
+# Double-commented lines are experimental features currently not working
+#    xDirty = False
+#    yDirty = False
     xOldText = ''
     yOldText = ''
+
+    clean = 1
 
     previous = None
     def __init__(self, transforms, rawdatasets, parent=None):
@@ -45,22 +49,38 @@ class DataEditor(QDialog):
 
         xLabel = QLabel("x' = ")
         self.xTransf = QLineEdit()
+        self.xCheck = QToolButton()
+##        self.xCheck.setMaximumHeight(self.xTransf.height())
+        self.xCheck.setVisible(False)
+        self.xCheck.setIcon(QIcon(":/dialog-error.svg"))
         self.xTransf.setText(self.dataList.currentItem().transf[0])
         xLabel.setBuddy(self.xTransf)
 
         yLabel = QLabel("y' = ")
         self.yTransf = QLineEdit()
+        self.yCheck = QToolButton()
+##        self.yCheck.setMaximumHeight(self.yTransf.height())
+        self.yCheck.setVisible(False)
+        self.yCheck.setIcon(QIcon(":/dialog-error.svg"))
         self.yTransf.setText(self.dataList.currentItem().transf[1])
         yLabel.setBuddy(self.yTransf)
 
         applyButton = QPushButton("Apply")
         closeButton = QPushButton("Close")
 
+        lineXLayout = QHBoxLayout()
+        lineXLayout.addWidget(self.xTransf)
+        lineXLayout.addWidget(self.xCheck)
+
+        lineYLayout = QHBoxLayout()
+        lineYLayout.addWidget(self.yTransf)
+        lineYLayout.addWidget(self.yCheck)
+
         transfLayout = QGridLayout()
         transfLayout.addWidget(xLabel, 0, 0)
-        transfLayout.addWidget(self.xTransf, 0, 1)
+        transfLayout.addLayout(lineXLayout, 0, 1)
         transfLayout.addWidget(yLabel, 1, 0)
-        transfLayout.addWidget(self.yTransf, 1, 1)
+        transfLayout.addLayout(lineYLayout, 1, 1)
 
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(applyButton)
@@ -80,85 +100,99 @@ class DataEditor(QDialog):
                 self.xTransfValidate)
         self.connect(self.yTransf, SIGNAL("editingFinished()"),
                 self.yTransfValidate)
-        self.connect(self.dataList,SIGNAL("itemSelectionChanged()"),
-                self.selectionChangedSlot)
+#        self.connect(self.dataList,SIGNAL("itemSelectionChanged()"),
+#                self.selectionChangedSlot)
+        self.connect(self.xCheck, SIGNAL("clicked()"), self.ParsingError)
+        self.connect(self.yCheck, SIGNAL("clicked()"), self.ParsingError)
 
         self.connect(self.dataList, SIGNAL("currentItemChanged("
             "QListWidgetItem*, QListWidgetItem*)"), self.update_Ui)
 
     def applyTransf(self):
         """docstring for applyTransf"""
-        tnew = {}
-        for idx in range(self.dataList.count()):
-            dataset = self.dataList.item(idx)
-            tnew[dataset.name] = dataset.transf
+        print "all clear"
+        if self.clean:
+            tnew = {}
+            for idx in range(self.dataList.count()):
+                dataset = self.dataList.item(idx)
+                tnew[dataset.name] = dataset.transf
 
-        self.transforms.update(tnew)
+            self.transforms.update(tnew)
 
-        self.emit(SIGNAL("changed"))
+            self.emit(SIGNAL("changed"))
+        else:
+            QMessageBox.critical(self, "Parsing Errors",
+                              "There were parsing errors reading the "
+                              "transformations you specified. \n\n"
+                              "Please check for typing errors and retry")
 
     def xTransfValidate(self):
         """Validate x-axis transformation"""
+        i = self.dataList.currentItem()
+
         try:
             s = 'lambda x,y:' + str(self.xTransf.text())
             f = eval(s)
-            i = self.dataList.currentItem()
             p = f(i.data.data_x, i.data.data_y)
             i.transf = (str(self.xTransf.text()), i.transf[1])
-
-            self.xDirty = False
+            self.xCheck.setVisible(False)
+#            self.xDirty = False
+            self.clean *= 1
         except:
-            QMessageBox.critical(self, "Syntax Error",
-                    "Cannot parse the transformation specified for the x-axis")
-            self.xTransf.setFocus(Qt.OtherFocusReason)
-            self.xTransf.selectAll()
-
-            self.xOldText = str(self.xTransf.text())
-            self.yOldText = str(self.yTransf.text())
-            self.xDirty = True
+            self.xCheck.setVisible(True)
+            i.transf = (str(self.xTransf.text()), i.transf[1])
+            self.clean *= 0
 
     def yTransfValidate(self):
         """Validate y-axis transformation"""
+        i = self.dataList.currentItem()
+
         try:
             s = 'lambda x,y:' + str(self.yTransf.text())
             f = eval(s)
-            i = self.dataList.currentItem()
             p = f(i.data.data_x, i.data.data_y)
             i.transf = (i.transf[0], str(self.yTransf.text()))
-
-            self.yDirty = False
+            self.yCheck.setVisible(False)
+#            self.yDirty = False
+            self.clean *= 1
         except:
-            QMessageBox.critical(self, "Syntax Error",
-                    "Cannot parse the transformation specified for the y-axis")
-            self.yTransf.setFocus(Qt.OtherFocusReason)
-            self.yTransf.selectAll()
+            self.yCheck.setVisible(True)
+            i.transf = (i.transf[0], str(self.yTransf.text()))
+            self.clean *= 0
 
-            self.xOldText = str(self.xTransf.text())
-            self.yOldText = str(self.yTransf.text())
-            self.yDirty = True
+    def ParsingError(self):
+        """docstring for ParsingError"""
+        QMessageBox.critical(self, "Parsing Error",
+                             "This line could not be read and might contain "
+                             "typing errors.")
 
-    def selectionChangedSlot(self):
-        """
-        Revert the selection if the previous transformations where not correct
-        """
-        if self.xDirty:
-            self.dataList.setCurrentItem(self.previous)
-            self.xTransf.setText(self.xOldText)
-            self.yTransf.setText(self.yOldText)
-            self.xTransf.setFocus(Qt.OtherFocusReason)
-            self.xTransf.selectAll()
-        if self.yDirty:
-            self.dataList.setCurrentItem(self.previous)
-            self.xTransf.setText(self.xOldText)
-            self.yTransf.setText(self.yOldText)
-            self.yTransf.setFocus(Qt.OtherFocusReason)
-            self.yTransf.selectAll()
-
+#    def selectionChangedSlot(self):
+#        pass
+#        """
+#        Revert the selection if the previous transformations were not correct
+#        """
+#        if self.xDirty:
+#            print "xexecuting"
+#            self.dataList.setCurrentItem(self.previous)
+#            self.xTransf.setText(self.xOldText)
+#            self.yTransf.setText(self.yOldText)
+#            self.xTransf.setFocus(Qt.OtherFocusReason)
+#            self.xTransf.selectAll()
+#        if self.yDirty:
+#            print "yexecuting"
+#            self.dataList.setCurrentItem(self.previous)
+#            self.xTransf.setText(self.xOldText)
+#            self.yTransf.setText(self.yOldText)
+#            self.yTransf.setFocus(Qt.OtherFocusReason)
+#            self.yTransf.selectAll()
+#
     def update_Ui(self, current, previous):
         """Updates the GUI"""
         self.previous = previous
         self.xTransf.setText(current.transf[0])
         self.yTransf.setText(current.transf[1])
+        self.xTransfValidate()
+        self.yTransfValidate()
 
     def closeEvent(self, event):
         """Store the settings"""

@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version='1.0'>
 <qresource>
+<file alias="dialog-error.svg">data/dialog-error.svg</file>
 <file alias="document-open.svg">data/document-open.svg</file>
 <file alias="document-save-as.svg">data/document-save-as.svg</file>
 <file alias="index.html">data/help.html</file>
