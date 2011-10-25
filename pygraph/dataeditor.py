@@ -1,8 +1,10 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
+                        QAbstractItemView, QLabel, QLineEdit, \
+                        QToolButton, QIcon, QPushButton, \
+                        QHBoxLayout, QGridLayout, QMessageBox
+from PyQt4.QtCore import QString, SIGNAL
 
 import pygraph.data as data
-from numpy import *
 
 def D(x):
     q = diff(x)

@@ -1,5 +1,11 @@
-from PyQt4.Qwt5 import *
-from PyQt4.Qwt5.qplt import *
+from PyQt4.Qwt5.qplt import QwtPlot, QColor, QwtPlotGrid, QwtLegend, Qwt, \
+                            QFont, QwtLinearScaleEngine, QwtText, QPen, \
+                            DotLine, QwtPlotZoomer, QwtPicker, Qt,\
+                            QwtEventPattern, QwtPlotPicker, SIGNAL, \
+                            QRectF, QwtPlotCurve, QBrush, QwtSymbol, \
+                            QSize
+
+from PyQt4.Qwt5.qplt import QwtLog10ScaleEngine
 
 import pygraph.data as data
 

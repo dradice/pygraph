@@ -1,5 +1,6 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QDialog, QWidget, QLabel, QLineEdit, QGridLayout, \
+                        QCheckBox, QPushButton, QHBoxLayout, QFrame, \
+                        QVBoxLayout
 
 from pygraph.data import settings
 
