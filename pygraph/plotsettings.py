@@ -1,3 +1,4 @@
+from PyQt4.Qt import SIGNAL
 from PyQt4.QtGui import QDialog, QWidget, QLabel, QLineEdit, QGridLayout, \
                         QCheckBox, QPushButton, QHBoxLayout, QFrame, \
                         QVBoxLayout
