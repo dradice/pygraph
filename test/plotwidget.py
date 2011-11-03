@@ -2,7 +2,7 @@
 
 import sys
 
-from PyQt4.Qt import QApplication
+from PyQt4.QtGui import QApplication
 from PyQt4.Qwt5 import *
 from pygraph.plotwidget import PlotWidget
 
