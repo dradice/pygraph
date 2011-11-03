@@ -16,6 +16,40 @@ Requirements
 * >= qt-4.4
 * >= qwt-5.2
 
+Mouse shortcuts
+---------------
+
+* Left click + drag:        zoom-in
+* Right click:              previous zoom settings
+* Shift + Right click:      next zoom settings
+* Middle click:             original zoom settings
+
+Data transformations
+--------------------
+
+Data transformations strings are evaluated as lambda functions with
+numpy expressions.
+
+Example: shifting the data and removing a secular trend
+
+  x' = x + 0.5
+  y' = y + 0.1*sin(x)*x
+
+Example: computing the derivative of the data
+
+  x' = x
+  y' = D(y)/D(x)
+
+Bad example: a constant cannot be used as an argument for a lambda function
+
+  x' = x
+  y' = 5
+
+Example: setting y to a constant value
+
+  x' = x
+  y' = 5 + 0*y
+
 Acknowledgements
 ----------------
 
