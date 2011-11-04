@@ -16,10 +16,12 @@ The following tutorial have been provided by Barry Wardell
   hg clone --insecure https://bitbucket.org/dradice/scidata
   cd scidata
   sudo python setup.py install
-6. Install pygraph:
+6. Link pyrcc4-2.7 to pyrcc4
+  ln -s /opt/local/bin/pyrcc4-2.7 /opt/local/bin/pyrcc4
+7. Install pygraph:
   hg clone --insecure https://bitbucket.org/dradice/pygraph
   cd pygraph
   sudo python setup.py install
-7. Put the pygraph executable on your $PATH:
+8. Put the pygraph executable on your $PATH:
   ln -s /opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pygraph /opt/local/bin/pygraph
-8. Run pygraph
+9. Run pygraph
