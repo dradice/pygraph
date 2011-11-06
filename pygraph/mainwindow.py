@@ -149,10 +149,8 @@ class MainWindow(QMainWindow):
                 "Ctrl+Right", "media-skip-forward", "Goto the last frame")
         gotoTimeAction = self.createAction("&Go to...", self.gotoTimeSlot,
                 "Ctrl+G", None, "Go to a given point in time")
-        plotAllAction = self.createAction("&Plot all", self.plotAll,
-                "Ctrl+A", None, "Plot all the frames at once")
-        unPlotAllAction = self.createAction("&Unplot all", self.unPlotAll,
-                "Ctrl+U", None, "Hide not current frames")
+        plotAllAction = self.createAction("&Plot/unplot all", self.plotAll,
+                "Ctrl+A", None, "Plot/unplot all the frames at once")
 
         # Help actions
         helpAboutAction = self.createAction("&About pygraph", self.aboutSlot)
@@ -185,7 +183,6 @@ class MainWindow(QMainWindow):
         playMenu.addAction(gotoTimeAction)
         playMenu.addSeparator()
         playMenu.addAction(plotAllAction)
-        playMenu.addAction(unPlotAllAction)
 
         self.playAction.setEnabled(True)
         self.playAction.setVisible(True)
@@ -574,7 +571,8 @@ class MainWindow(QMainWindow):
             self.plotAllFlag = 1
             self.plotwidget.plotAll(self.datasets)
         else:
-            pass
+            self.plotAllFlag = 0
+            self.plotwidget.unPlotAll()
     
     def plotFrame(self):
         """
@@ -598,11 +596,3 @@ class MainWindow(QMainWindow):
             self.pauseSlot()
         else:
             self.plotFrame()
-
-    def unPlotAll(self):
-        """docstring for unPlotAll"""
-        if self.plotAllFlag:
-            self.plotAllFlag = 0
-            self.plotwidget.unPlotAll()
-        else:
-            pass
