@@ -119,7 +119,7 @@ class DataEditor(QDialog):
             QMessageBox.critical(self, "Parsing Errors",
                               "There were parsing errors reading the "
                               "transformations you specified. \n\n"
-                              "Please check for typing errors and retry")
+                              "Please check for typing errors and retry.")
 
     def xTransfValidate(self):
         """Validate x-axis transformation"""

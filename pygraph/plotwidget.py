@@ -261,8 +261,8 @@ class PlotWidget(QwtPlot):
 
     def unPlotAll(self):
         """docstring for unPlotAll"""
-        for c in self.acourves.values():
-            c.detach()
+        for c in self.acurves.values():
+            [i.detach() for i in c]
         self.showall = False
         self.replot()
 
