@@ -156,6 +156,29 @@ class PlotWidget(QwtPlot):
         # this sets the current axis as zoom base
         #self.zoomer.setZoomBase(True)
 
+    def plotAll(self, datasets):
+        """this function plots all the frames at once"""
+        clist = deepcopy(data.colors)
+        self.allCurves = []
+        for dataset in datasets.values():
+            mycolor = clist.pop(0)
+            basecolor = QColor(mycolor).toHsv()
+            for i in xrange(dataset.nframes):
+                cf = dataset.frame(i)
+                currentColor = QColor()
+                currentColor.setHsv(basecolor.hue(), basecolor.saturation(), 
+                                    basecolor.value() * i / dataset.nframes,
+                                    basecolor.alpha())
+                qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(currentColor)),
+                        QPen(QColor(currentColor)), QSize(3, 3))
+                self.allCurves.append(QwtPlotCurve())
+                self.allCurves[-1].setData(cf.data_x, cf.data_y)
+                self.allCurves[-1].attach(self)
+                self.allCurves[-1].setPen(QPen(QBrush(QColor(currentColor)), 1))
+                self.allCurves[-1].setSymbol(qsymbol)
+                self.legend.remove(self.allCurves[-1])
+
+        self.replot()
 
     def plotFrame(self, datasets, title=None):
         """
@@ -215,6 +238,12 @@ class PlotWidget(QwtPlot):
             (as suggested by PyQwt Source code)
         """
         plotItem.setVisible(status)
+        self.replot()
+
+
+    def unPlotAll(self):
+        """docstring for unPlotAll"""
+        [curve.detach() for curve in self.allCurves]
         self.replot()
 
 

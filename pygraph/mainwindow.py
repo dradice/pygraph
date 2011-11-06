@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
     * plotwidget : the plot widget
     * playAction : the "play" action
     * pauseAction: the "pause" action
+    * plotAllFlag: a flag to check wheter plotAll feature is being used or not
     * rawdatasets: a dictionary {filename: monodataset} storing the original
                    data
     * rjustSize  : maximum length of the "time" string
@@ -40,6 +41,7 @@ class MainWindow(QMainWindow):
     datasets = {}
     playAction = None
     pauseAction = None
+    plotAllFlag = 0
     plotwidget = None
     rawdatasets = {}
     tfinal = 0
@@ -147,6 +149,10 @@ class MainWindow(QMainWindow):
                 "Ctrl+Right", "media-skip-forward", "Goto the last frame")
         gotoTimeAction = self.createAction("&Go to...", self.gotoTimeSlot,
                 "Ctrl+G", None, "Go to a given point in time")
+        plotAllAction = self.createAction("&Plot all", self.plotAll,
+                "Ctrl+A", None, "Plot all the frames at once")
+        unPlotAllAction = self.createAction("&Unplot all", self.unPlotAll,
+                "Ctrl+U", None, "Hide not current frames")
 
         # Help actions
         helpAboutAction = self.createAction("&About pygraph", self.aboutSlot)
@@ -177,6 +183,9 @@ class MainWindow(QMainWindow):
         playMenu.addAction(gotoEndAction)
         playMenu.addSeparator()
         playMenu.addAction(gotoTimeAction)
+        playMenu.addSeparator()
+        playMenu.addAction(plotAllAction)
+        playMenu.addAction(unPlotAllAction)
 
         self.playAction.setEnabled(True)
         self.playAction.setVisible(True)
@@ -214,6 +223,7 @@ class MainWindow(QMainWindow):
             self.plotFrame()
 
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
+
 
     def closeEvent(self, event):
         """
@@ -558,6 +568,14 @@ class MainWindow(QMainWindow):
 # Visualization routines
 ###############################################################################
 
+    def plotAll(self):
+        """docstring for playAll"""
+        if not self.plotAllFlag:
+            self.plotAllFlag = 1
+            self.plotwidget.plotAll(self.datasets)
+        else:
+            pass
+    
     def plotFrame(self):
         """
         Plot the data at the current time
@@ -581,3 +599,10 @@ class MainWindow(QMainWindow):
         else:
             self.plotFrame()
 
+    def unPlotAll(self):
+        """docstring for unPlotAll"""
+        if self.plotAllFlag:
+            self.plotAllFlag = 0
+            self.plotwidget.unPlotAll()
+        else:
+            pass

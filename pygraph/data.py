@@ -29,7 +29,7 @@ settings = {
         }
 
 colors = [
-        "Black",
+#        "Black",
         "Blue",
         "Red",
         "Green",
