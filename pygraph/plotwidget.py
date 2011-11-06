@@ -21,18 +21,23 @@ class PlotWidget(QwtPlot):
     """
         a class that represents a plot
 
-        clist  : list of colors
-        curves : dictionary of QwtPlotCurves {datafile: curve}
-        grid   : QwtPlotGrid object
-        hidden : dictionary of Bools {datafile: hidden}
-        litems : legend items
-        zoomer : QwtPlotZoom object
+        acurves : dictionary of QwtPlotCurves {datafile: curve}
+                  used for the show-all feature
+        clist   : list of colors
+        curves  : dictionary of QwtPlotCurves {datafile: curve}
+        grid    : QwtPlotGrid object
+        hidden  : dictionary of Bools {datafile: hidden}
+        litems  : legend items
+        showall : boolean
+        zoomer  : QwtPlotZoom object
     """
+    acurves = {}
     clist = []
     curves = {}
     grid = None
     hidden = {}
     litems = {}
+    showall = False
     zoomer = None
 
     def __init__(self, parent=None):
@@ -159,25 +164,30 @@ class PlotWidget(QwtPlot):
     def plotAll(self, datasets):
         """this function plots all the frames at once"""
         clist = deepcopy(data.colors)
-        self.allCurves = []
-        for dataset in datasets.values():
+        self.acurves = {}
+        for key, dataset in datasets.iteritems():
+            self.acurves[key] = []
             mycolor = clist.pop(0)
             basecolor = QColor(mycolor).toHsv()
             for i in xrange(dataset.nframes):
                 cf = dataset.frame(i)
                 currentColor = QColor()
-                currentColor.setHsv(basecolor.hue(), basecolor.saturation(), 
-                                    basecolor.value() * i / dataset.nframes,
-                                    basecolor.alpha())
-                qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(currentColor)),
+                currentColor.setHsv(basecolor.hue(), basecolor.saturation(),
+                        basecolor.value() * i / dataset.nframes,
+                        basecolor.alpha())
+                qsymbol = QwtSymbol(QwtSymbol.Rect,
+                        QBrush(QColor(currentColor)),
                         QPen(QColor(currentColor)), QSize(3, 3))
-                self.allCurves.append(QwtPlotCurve())
-                self.allCurves[-1].setData(cf.data_x, cf.data_y)
-                self.allCurves[-1].attach(self)
-                self.allCurves[-1].setPen(QPen(QBrush(QColor(currentColor)), 1))
-                self.allCurves[-1].setSymbol(qsymbol)
-                self.legend.remove(self.allCurves[-1])
+                qcurve = QwtPlotCurve()
+                qcurve.setData(cf.data_x, cf.data_y)
+                qcurve.attach(self)
+                qcurve.setPen(QPen(QBrush(QColor(currentColor)), 1))
+                qcurve.setSymbol(qsymbol)
+                self.legend.remove(qcurve)
 
+                self.acurves[key].append(qcurve)
+
+        self.showall = True
         self.replot()
 
     def plotFrame(self, datasets, title=None):
@@ -238,12 +248,22 @@ class PlotWidget(QwtPlot):
             (as suggested by PyQwt Source code)
         """
         plotItem.setVisible(status)
+        if self.showall:
+            for key, item in self.curves.iteritems():
+                if item == plotItem:
+                    mykey = key
+                    break
+            for c in self.acurves[mykey]:
+                c.setVisible(status)
+                self.legend.remove(c)
         self.replot()
 
 
     def unPlotAll(self):
         """docstring for unPlotAll"""
-        [curve.detach() for curve in self.allCurves]
+        for c in self.acourves.values():
+            c.detach()
+        self.showall = False
         self.replot()
 
 

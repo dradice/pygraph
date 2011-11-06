@@ -137,7 +137,7 @@ class DataEditor(QDialog):
             self.xCheck.setVisible(True)
             i.transf = (str(self.xTransf.text()), i.transf[1])
             self.clean[row] = 0
-            
+
     def yTransfValidate(self):
         """Validate y-axis transformation"""
         i = self.dataList.currentItem()
@@ -149,7 +149,7 @@ class DataEditor(QDialog):
             p = f(i.data.data_x, i.data.data_y)
             i.transf = (i.transf[0], str(self.yTransf.text()))
             self.yCheck.setVisible(False)
-            self.clean[row + 1] = 1 
+            self.clean[row + 1] = 1
         except:
             self.yCheck.setVisible(True)
             i.transf = (i.transf[0], str(self.yTransf.text()))

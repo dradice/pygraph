@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
     datasets = {}
     playAction = None
     pauseAction = None
-    plotAllFlag = 0
+    plotAllFlag = False
     plotwidget = None
     rawdatasets = {}
     tfinal = 0
@@ -149,7 +149,7 @@ class MainWindow(QMainWindow):
                 "Ctrl+Right", "media-skip-forward", "Goto the last frame")
         gotoTimeAction = self.createAction("&Go to...", self.gotoTimeSlot,
                 "Ctrl+G", None, "Go to a given point in time")
-        plotAllAction = self.createAction("&Plot/unplot all", self.plotAll,
+        plotAllAction = self.createAction("&Show all", self.plotAll,
                 "Ctrl+A", None, "Plot/unplot all the frames at once")
 
         # Help actions
@@ -566,18 +566,31 @@ class MainWindow(QMainWindow):
 ###############################################################################
 
     def plotAll(self):
-        """docstring for playAll"""
+        """
+        Toggle the 'show all' feature
+        """
         if not self.plotAllFlag:
-            self.plotAllFlag = 1
+            self.plotAllFlag = True
+            self.pauseSlot()
             self.plotwidget.plotAll(self.datasets)
         else:
-            self.plotAllFlag = 0
+            self.plotAllFlag = False
             self.plotwidget.unPlotAll()
-    
+
+    def unPlotAll(self):
+        """
+        Don't show all the frames
+        """
+        if self.plotAllFlag:
+            self.plotAllFlag = False
+            self.plotwidget.unPlotAll()
+
     def plotFrame(self):
         """
         Plot the data at the current time
         """
+        self.unPlotAll()
+
         frames = {}
         for key, item in self.datasets.iteritems():
             frames[key] = item.find_frame(self.time)
