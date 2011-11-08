@@ -15,6 +15,7 @@ class QtBuild(build):
             py_file = splitext(qrc_file)[0] + ".py"
         if os.system('pyrcc4 "%s" -o "%s"' % (qrc_file, py_file)) > 0:
             print "Unable to generate python module for resource file", qrc_file
+            exit(1)
 
     def run(self):
         for dirpath, _, filenames in os.walk('pygraph'):
