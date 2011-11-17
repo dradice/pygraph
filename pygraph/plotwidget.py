@@ -185,6 +185,9 @@ class PlotWidget(QwtPlot):
                 qcurve.setSymbol(qsymbol)
                 self.legend.remove(qcurve)
 
+                qcurve.setVisible(not self.hidden[key])
+                self.legend.remove(qcurve)
+
                 self.acurves[key].append(qcurve)
 
         self.showall = True
@@ -248,11 +251,12 @@ class PlotWidget(QwtPlot):
             (as suggested by PyQwt Source code)
         """
         plotItem.setVisible(status)
+        for key, item in self.curves.iteritems():
+            if item == plotItem:
+                mykey = key
+                break
+        self.hidden[mykey] = not status
         if self.showall:
-            for key, item in self.curves.iteritems():
-                if item == plotItem:
-                    mykey = key
-                    break
             for c in self.acurves[mykey]:
                 c.setVisible(status)
                 self.legend.remove(c)
