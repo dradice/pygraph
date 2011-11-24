@@ -208,7 +208,7 @@ class MainWindow(QMainWindow):
 
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setTracking(True)
-        self.connect(self.slider, SIGNAL("valueChanged(int)"), self.sliderSlot)
+        self.connect(self.slider, SIGNAL("sliderMoved(int)"), self.sliderSlot)
 
         playToolbar.addWidget(self.slider)
 
