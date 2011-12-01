@@ -17,7 +17,7 @@ The following instructions have been provided by Barry Wardell
   cd scidata
   sudo python setup.py install
 6. Link pyrcc4-2.7 to pyrcc4
-  ln -s /opt/local/bin/pyrcc4-2.7 /opt/local/bin/pyrcc4
+  sudo ln -s /opt/local/bin/pyrcc4-2.7 /opt/local/bin/pyrcc4
 7. Install pygraph:
   hg clone --insecure https://bitbucket.org/dradice/pygraph
   cd pygraph
