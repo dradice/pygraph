@@ -54,6 +54,30 @@ Example: setting y to a constant value
 
   y' = 5 + 0*y
 
+Command Line Interface
+----------------------
+
+pygraph can be invoked from the command-line as
+
+$ pygraph
+
+Optionally it is possible to specify a list of files to open with
+
+$ pygraph file1 file2 ...
+
+In the case in which a dataset is split over different files it is possible
+to have pygraph automatically merge them, by simply enclosing the relevant
+list of files within curly brackets as:
+
+$ pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
+
+Please notice the space between the brackets and the file list.
+
+For more informations see
+
+$ pygraph --help
+
+
 Acknowledgements
 ----------------
 

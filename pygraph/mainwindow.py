@@ -62,19 +62,40 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         # Read data
-        for fname in args:
-            name_re = re.match(r".+\.(\w+)$", fname)
-            ext = name_re.group(1)
-            if ext == "xg" or ext == "yg":
-                self.rawdatasets[fname] = xg.parsefile(fname)
-            elif ext == "h5":
-                self.rawdatasets[fname] = h5.parse_1D_file(fname)
-            elif ext == "asc":
-                self.rawdatasets[fname] = asc.parse_1D_file(fname)
+        mergeTarget = None
+        for i in range(len(args)):
+            if args[i] == '{':
+                try:
+                    mergeTarget = args[i+1]
+                except:
+                    print("Unmatched '{' parentesis in command line!")
+                    exit(1)
+            elif args[i] == '}':
+                mergeTarget = None
             else:
-                print("Unknown file extension '" + ext + "'!")
-                exit(1)
-            self.transforms[fname] = ('x', 'y')
+                fname = args[i]
+                name_re = re.match(r".+\.(\w+)$", fname)
+                ext = name_re.group(1)
+                if ext == "xg" or ext == "yg":
+                    cdataset = xg.parsefile(fname)
+                elif ext == "h5":
+                    cdataset = h5.parse_1D_file(fname)
+                elif ext == "asc":
+                    cdataset = asc.parse_1D_file(fname)
+                else:
+                    print("Unknown file extension '" + ext + "'!")
+                    exit(1)
+
+                if mergeTarget == None or mergeTarget == fname:
+                    self.rawdatasets[fname] = cdataset
+                    self.transforms[fname] = ('x', 'y')
+                else:
+                    self.rawdatasets[mergeTarget].merge([cdataset])
+
+        if mergeTarget is not None:
+            print("Unmatched '{' parentesis in command line!")
+            exit(1)
+
         self.updateData()
 
         # Restore settings
