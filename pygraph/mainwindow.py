@@ -625,7 +625,10 @@ class MainWindow(QMainWindow):
         """
         Update the plot
         """
-        self.time += self.timestep
+        if data.settings["Animation/FPS"] >= 25:
+            self.time += data.settings["Animation/FPS"]/25*self.timestep
+        else:
+            self.time += self.timestep
         if(self.time > self.tfinal):
             self.pauseSlot()
         else:
