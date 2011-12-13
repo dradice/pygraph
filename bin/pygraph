@@ -13,7 +13,12 @@ usage = "%prog [options] [{] data0 [}] [data1 [data2 [...]]]"
 parser = OptionParser(usage)
 parser.add_option("-l", "--log", action="store_true", default=False,
         dest="logscale", help="Use logaritmic scale")
+parser.add_option("-r", "--reflevel", dest="reflevel",
+        help="Plot only the given refinement level")
 (options, args) = parser.parse_args()
+
+if options.reflevel is not None:
+    options.reflevel = int(options.reflevel)
 
 window = MainWindow(args, options)
 window.show()

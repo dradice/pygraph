@@ -79,9 +79,9 @@ class MainWindow(QMainWindow):
                 if ext == "xg" or ext == "yg":
                     cdataset = xg.parsefile(fname)
                 elif ext == "h5":
-                    cdataset = h5.parse_1D_file(fname)
+                    cdataset = h5.parse_1D_file(fname, options.reflevel)
                 elif ext == "asc":
-                    cdataset = asc.parse_1D_file(fname)
+                    cdataset = asc.parse_1D_file(fname, options.reflevel)
                 else:
                     print("Unknown file extension '" + ext + "'!")
                     exit(1)
