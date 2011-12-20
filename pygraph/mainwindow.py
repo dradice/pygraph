@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
             name_re = re.match(r".+\.(\w+)$", mname)
             ext = name_re.group(1)
             if ext == "xg" or ext == "yg":
-                cdataset = xg.parsefile(mfname)
+                cdataset = xg.parsefile(mname)
             elif ext == "h5":
                 cdataset = h5.parse_1D_file(mname, options.reflevel)
             elif ext == "asc":
@@ -80,10 +80,44 @@ class MainWindow(QMainWindow):
                 self.transforms[fname] = ('x', 'y')
             else:
                 self.rawdatasets[fname].merge([cdataset])
-        
 
         [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
         args.insert(mergestart, fname)
+
+
+    def pushforward(self, args, options=None):
+        """Plots a dataset using another dataset's y axis as its x axis"""
+        try:
+            idx = args.index('@')
+            dataset1 = args[idx - 1]
+            dataset2 = args[idx + 1]
+        except IndexError:
+            print "Error in command line, check '@' syntax"
+            exit(1)
+        
+        for ds in (dataset1, dataset2):
+            name_re = re.match(r".+\.(\w+)$", ds)
+            ext = name_re.group(1)
+            if ext == "xg" or ext == "yg":
+                cdataset = xg.parsefile(ds)
+            elif ext == "h5":
+                cdataset = h5.parse_1D_file(ds, options.reflevel)
+            elif ext == "asc":
+                cdataset = asc.parse_1D_file(ds, options.reflevel)
+            else:
+                print("Unknown file extension '" + ext + "'!")
+                exit(1)
+
+            self.rawdatasets[ds] = cdataset
+            self.transforms[ds] = ('x', 'y')
+
+        self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
+
+        self.rawdatasets.pop(dataset2)
+
+        [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
+        args.insert(idx, dataset1)
+
 
     def __init__(self, args=None, options=None, parent=None):
         """
@@ -97,6 +131,9 @@ class MainWindow(QMainWindow):
                 print("Unmatched '{' parentesis in command line!")
                 exit(1)
             self.datamerge(args, options)
+
+        while '@' in args:
+            self.pushforward(args, options)
 
         for i in range(len(args)):
             fname = args[i]
