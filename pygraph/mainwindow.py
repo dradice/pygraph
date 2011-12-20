@@ -55,70 +55,6 @@ class MainWindow(QMainWindow):
 # Initialization methods
 ###############################################################################
 
-    def datamerge(self, args, options=None):
-        """Merge multiple datasets in a single one"""
-        mergestart = args.index('{')
-        mergestop = args.index('}')
-        fname = args[mergestart + 1]
-        
-        for i in range(mergestart + 1, mergestop):
-            mname = args[i]
-            name_re = re.match(r".+\.(\w+)$", mname)
-            ext = name_re.group(1)
-            if ext == "xg" or ext == "yg":
-                cdataset = xg.parsefile(mname)
-            elif ext == "h5":
-                cdataset = h5.parse_1D_file(mname, options.reflevel)
-            elif ext == "asc":
-                cdataset = asc.parse_1D_file(mname, options.reflevel)
-            else:
-                print("Unknown file extension '" + ext + "'!")
-                exit(1)
-
-            if i == mergestart + 1:
-                self.rawdatasets[fname] = cdataset
-                self.transforms[fname] = ('x', 'y')
-            else:
-                self.rawdatasets[fname].merge([cdataset])
-
-        [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
-        args.insert(mergestart, fname)
-
-
-    def pushforward(self, args, options=None):
-        """Plots a dataset using another dataset's y axis as its x axis"""
-        try:
-            idx = args.index('@')
-            dataset1 = args[idx - 1]
-            dataset2 = args[idx + 1]
-        except IndexError:
-            print "Error in command line, check '@' syntax"
-            exit(1)
-        
-        for ds in (dataset1, dataset2):
-            name_re = re.match(r".+\.(\w+)$", ds)
-            ext = name_re.group(1)
-            if ext == "xg" or ext == "yg":
-                cdataset = xg.parsefile(ds)
-            elif ext == "h5":
-                cdataset = h5.parse_1D_file(ds, options.reflevel)
-            elif ext == "asc":
-                cdataset = asc.parse_1D_file(ds, options.reflevel)
-            else:
-                print("Unknown file extension '" + ext + "'!")
-                exit(1)
-
-            self.rawdatasets[ds] = cdataset
-            self.transforms[ds] = ('x', 'y')
-
-        self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
-
-        self.rawdatasets.pop(dataset2)
-
-        [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
-        args.insert(idx, dataset1)
-
-
     def __init__(self, args=None, options=None, parent=None):
         """
         Setup the main window and import all the given files
@@ -138,18 +74,7 @@ class MainWindow(QMainWindow):
         for i in range(len(args)):
             fname = args[i]
             if fname not in self.rawdatasets.keys():
-                fname = args[i]
-                name_re = re.match(r".+\.(\w+)$", fname)
-                ext = name_re.group(1)
-                if ext == "xg" or ext == "yg":
-                    cdataset = xg.parsefile(fname)
-                elif ext == "h5":
-                    cdataset = h5.parse_1D_file(fname, options.reflevel)
-                elif ext == "asc":
-                    cdataset = asc.parse_1D_file(fname, options.reflevel)
-                else:
-                    print("Unknown file extension '" + ext + "'!")
-                    exit(1)
+                cdataset = self.loaddata(fname)
 
                 self.rawdatasets[fname] = cdataset
                 self.transforms[fname] = ('x', 'y')
@@ -300,6 +225,62 @@ class MainWindow(QMainWindow):
 
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
+    def loaddataset(self, name, options=None):
+        """Load a dataset"""
+        name_re = re.match(r".+\.(\w+)$", name)
+        ext = name_re.group(1)
+        if ext == "xg" or ext == "yg":
+            cdataset = xg.parsefile(name)
+        elif ext == "h5":
+            cdataset = h5.parse_1D_file(name, options.reflevel)
+        elif ext == "asc":
+            cdataset = asc.parse_1D_file(name, options.reflevel)
+        else:
+            print("Unknown file extension '" + ext + "'!")
+            exit(1)
+
+        return cdataset
+        
+    def datamerge(self, args, options=None):
+        """Merge multiple datasets in a single one"""
+        mergestart = args.index('{')
+        mergestop = args.index('}')
+        fname = args[mergestart + 1]
+        
+        for i in range(mergestart + 1, mergestop):
+            cdataset = self.loaddataset(args[i], options)
+
+            if i == mergestart + 1:
+                self.rawdatasets[fname] = cdataset
+                self.transforms[fname] = ('x', 'y')
+            else:
+                self.rawdatasets[fname].merge([cdataset])
+
+        [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
+        args.insert(mergestart, fname)
+
+    def pushforward(self, args, options=None):
+        """Plots a dataset using another dataset's y axis as its x axis"""
+        try:
+            idx = args.index('@')
+            dataset1 = args[idx - 1]
+            dataset2 = args[idx + 1]
+        except IndexError:
+            print "Error in command line, check '@' syntax"
+            exit(1)
+        
+        for ds in (dataset1, dataset2):
+            cdataset = self.loaddataset(ds, options)
+
+            self.rawdatasets[ds] = cdataset
+            self.transforms[ds] = ('x', 'y')
+
+        self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
+
+        self.rawdatasets.pop(dataset2)
+
+        [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
+        args.insert(idx, dataset1)
 
     def closeEvent(self, event):
         """
