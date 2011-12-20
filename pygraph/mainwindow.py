@@ -55,6 +55,36 @@ class MainWindow(QMainWindow):
 # Initialization methods
 ###############################################################################
 
+    def datamerge(self, args, options=None):
+        """Merge multiple datasets in a single one"""
+        mergestart = args.index('{')
+        mergestop = args.index('}')
+        fname = args[mergestart + 1]
+        
+        for i in range(mergestart + 1, mergestop):
+            mname = args[i]
+            name_re = re.match(r".+\.(\w+)$", mname)
+            ext = name_re.group(1)
+            if ext == "xg" or ext == "yg":
+                cdataset = xg.parsefile(mfname)
+            elif ext == "h5":
+                cdataset = h5.parse_1D_file(mname, options.reflevel)
+            elif ext == "asc":
+                cdataset = asc.parse_1D_file(mname, options.reflevel)
+            else:
+                print("Unknown file extension '" + ext + "'!")
+                exit(1)
+
+            if i == mergestart + 1:
+                self.rawdatasets[fname] = cdataset
+                self.transforms[fname] = ('x', 'y')
+            else:
+                self.rawdatasets[fname].merge([cdataset])
+        
+
+        [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
+        args.insert(mergestart, fname)
+
     def __init__(self, args=None, options=None, parent=None):
         """
         Setup the main window and import all the given files
@@ -62,17 +92,15 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         # Read data
-        mergeTarget = None
+        while '{' in args:
+            if '}' not in args:
+                print("Unmatched '{' parentesis in command line!")
+                exit(1)
+            self.datamerge(args, options)
+
         for i in range(len(args)):
-            if args[i] == '{':
-                try:
-                    mergeTarget = args[i+1]
-                except:
-                    print("Unmatched '{' parentesis in command line!")
-                    exit(1)
-            elif args[i] == '}':
-                mergeTarget = None
-            else:
+            fname = args[i]
+            if fname not in self.rawdatasets.keys():
                 fname = args[i]
                 name_re = re.match(r".+\.(\w+)$", fname)
                 ext = name_re.group(1)
@@ -86,15 +114,8 @@ class MainWindow(QMainWindow):
                     print("Unknown file extension '" + ext + "'!")
                     exit(1)
 
-                if mergeTarget == None or mergeTarget == fname:
-                    self.rawdatasets[fname] = cdataset
-                    self.transforms[fname] = ('x', 'y')
-                else:
-                    self.rawdatasets[mergeTarget].merge([cdataset])
-
-        if mergeTarget is not None:
-            print("Unmatched '{' parentesis in command line!")
-            exit(1)
+                self.rawdatasets[fname] = cdataset
+                self.transforms[fname] = ('x', 'y')
 
         self.updateData()
 
