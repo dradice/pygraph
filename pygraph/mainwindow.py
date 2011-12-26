@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         for i in range(len(args)):
             fname = args[i]
             if fname not in self.rawdatasets.keys():
-                cdataset = self.loaddata(fname)
+                cdataset = self.loaddataset(fname, options)
 
                 self.rawdatasets[fname] = cdataset
                 self.transforms[fname] = ('x', 'y')
@@ -226,7 +226,9 @@ class MainWindow(QMainWindow):
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
     def loaddataset(self, name, options=None):
-        """Load a dataset"""
+        """
+        Load a dataset
+        """
         name_re = re.match(r".+\.(\w+)$", name)
         ext = name_re.group(1)
         if ext == "xg" or ext == "yg":
@@ -242,7 +244,9 @@ class MainWindow(QMainWindow):
         return cdataset
         
     def datamerge(self, args, options=None):
-        """Merge multiple datasets in a single one"""
+        """
+        Merge multiple datasets in a single one
+        """
         mergestart = args.index('{')
         mergestop = args.index('}')
         fname = args[mergestart + 1]
@@ -260,7 +264,9 @@ class MainWindow(QMainWindow):
         args.insert(mergestart, fname)
 
     def pushforward(self, args, options=None):
-        """Plots a dataset using another dataset's y axis as its x axis"""
+        """
+        Plots a dataset using another dataset's y axis as its x axis
+        """
         try:
             idx = args.index('@')
             dataset1 = args[idx - 1]
