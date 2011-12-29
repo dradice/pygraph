@@ -66,15 +66,15 @@ class MainWindow(QMainWindow):
             if '}' not in args:
                 print("Unmatched '{' parentesis in command line!")
                 exit(1)
-            self.datamerge(args, options)
+            self.mergeData(args, options)
 
         while '@' in args:
-            self.pushforward(args, options)
+            self.pushForward(args, options)
 
         for i in range(len(args)):
             fname = args[i]
             if fname not in self.rawdatasets.keys():
-                cdataset = self.loaddataset(fname, options)
+                cdataset = self.loadDataset(fname, options)
 
                 self.rawdatasets[fname] = cdataset
                 self.transforms[fname] = ('x', 'y')
@@ -225,7 +225,7 @@ class MainWindow(QMainWindow):
 
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
-    def loaddataset(self, name, options=None):
+    def loadDataset(self, name, options=None):
         """
         Load a dataset
         """
@@ -243,7 +243,7 @@ class MainWindow(QMainWindow):
 
         return cdataset
         
-    def datamerge(self, args, options=None):
+    def mergeData(self, args, options=None):
         """
         Merge multiple datasets in a single one
         """
@@ -252,7 +252,7 @@ class MainWindow(QMainWindow):
         fname = args[mergestart + 1]
         
         for i in range(mergestart + 1, mergestop):
-            cdataset = self.loaddataset(args[i], options)
+            cdataset = self.loadDataset(args[i], options)
 
             if i == mergestart + 1:
                 self.rawdatasets[fname] = cdataset
@@ -263,7 +263,7 @@ class MainWindow(QMainWindow):
         [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
         args.insert(mergestart, fname)
 
-    def pushforward(self, args, options=None):
+    def pushForward(self, args, options=None):
         """
         Plots a dataset using another dataset's y axis as its x axis
         """
@@ -276,14 +276,16 @@ class MainWindow(QMainWindow):
             exit(1)
         
         for ds in (dataset1, dataset2):
-            cdataset = self.loaddataset(ds, options)
+            if ds not in self.rawdatasets.keys():
+                cdataset = self.loadDataset(ds, options)
 
-            self.rawdatasets[ds] = cdataset
-            self.transforms[ds] = ('x', 'y')
+                self.rawdatasets[ds] = cdataset
+                self.transforms[ds] = ('x', 'y')
 
         self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
 
         self.rawdatasets.pop(dataset2)
+        self.transforms.pop(dataset2)
 
         [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
         args.insert(idx, dataset1)
@@ -309,27 +311,6 @@ class MainWindow(QMainWindow):
                 QVariant(data.settings["PlotSettings/Position"]))
         qset.setValue("PlotSettings/Size",
                 QVariant(data.settings["PlotSettings/Size"]))
-
-    def createAction(self, text, slot=None, shortcut=None, icon=None,
-            tip=None, checkable=False, signal="triggered()"):
-        """
-        Custom wrapper to add and create an action
-
-        From Summerfield 2007
-        """
-        action = QAction(text, self)
-        if icon is not None:
-            action.setIcon(QIcon(":/%s.svg" % icon))
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        if tip is not None:
-            action.setToolTip(tip)
-            action.setStatusTip(tip)
-        if slot is not None:
-            self.connect(action, SIGNAL(signal), slot)
-        if checkable:
-            action.setCheckable(True)
-        return action
 
     def updateData(self):
         """
@@ -395,6 +376,27 @@ class MainWindow(QMainWindow):
         self.nframes = int((self.tfinal - self.tinit) / self.timestep)
         self.slider.setRange(0, self.nframes)
         self.slider.setValue(0)
+
+    def createAction(self, text, slot=None, shortcut=None, icon=None,
+            tip=None, checkable=False, signal="triggered()"):
+        """
+        Custom wrapper to add and create an action
+
+        From Summerfield 2007
+        """
+        action = QAction(text, self)
+        if icon is not None:
+            action.setIcon(QIcon(":/%s.svg" % icon))
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        if tip is not None:
+            action.setToolTip(tip)
+            action.setStatusTip(tip)
+        if slot is not None:
+            self.connect(action, SIGNAL(signal), slot)
+        if checkable:
+            action.setCheckable(True)
+        return action
 
 ###############################################################################
 # File menu

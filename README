@@ -15,6 +15,7 @@ Requirements
 * >= scidata-0.1
 * >= qt-4.4
 * >= qwt-5.2
+* <  qwt-6.0
 
 Mouse shortcuts
 ---------------
@@ -61,17 +62,28 @@ pygraph can be invoked from the command-line as
 
 $ pygraph
 
-Optionally it is possible to specify a list of files to open with
+It is possible to specify a list of files to open with
 
 $ pygraph file1 file2 ...
 
-In the case in which a dataset is split over different files it is possible
-to have pygraph automatically merge them, by simply enclosing the relevant
+In the case a dataset is split over different files it is possible
+to make pygraph automatically merge them, by simply enclosing the relevant
 list of files within curly brackets as:
 
 $ pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
 
 Please notice the space between the brackets and the file list.
+
+In case you wish to combine two datasets, using one's y data as the other's
+x data, you can use
+
+$ pygraph file1 @ file2
+
+this will plot file1 using file2's y data as its x data.
+
+You can also use {} merge and @ pushforward together, as in
+
+$ pygraph { file1 file2 } @ { file3 file4 }
 
 For more informations see
 
