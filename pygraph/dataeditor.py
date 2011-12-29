@@ -123,34 +123,42 @@ class DataEditor(QDialog):
         """Validate x-axis transformation"""
         i = self.dataList.currentItem()
         row = self.dataList.currentRow()
+        expr = str(self.xTransf.text())
+        
+        if 'x' not in expr:
+            expr += " + 0*x"
 
         try:
-            s = 'lambda x,y:' + str(self.xTransf.text())
+            s = 'lambda x,y:' + expr
             f = eval(s)
             p = f(i.data.data_x, i.data.data_y)
-            i.transf = (str(self.xTransf.text()), i.transf[1])
+            i.transf = (expr, i.transf[1])
             self.xCheck.setVisible(False)
             self.clean[row] = 1
         except:
             self.xCheck.setVisible(True)
-            i.transf = (str(self.xTransf.text()), i.transf[1])
+            i.transf = (expr, i.transf[1])
             self.clean[row] = 0
 
     def yTransfValidate(self):
         """Validate y-axis transformation"""
         i = self.dataList.currentItem()
         row = self.dataList.currentRow()
+        expr = str(self.yTransf.text())
+
+        if 'y' not in expr:
+            expr += " + 0*y"
 
         try:
-            s = 'lambda x,y:' + str(self.yTransf.text())
+            s = 'lambda x,y:' + expr
             f = eval(s)
             p = f(i.data.data_x, i.data.data_y)
-            i.transf = (i.transf[0], str(self.yTransf.text()))
+            i.transf = (i.transf[0], expr)
             self.yCheck.setVisible(False)
             self.clean[row + 1] = 1
         except:
             self.yCheck.setVisible(True)
-            i.transf = (i.transf[0], str(self.yTransf.text()))
+            i.transf = (i.transf[0], expr)
             self.clean[row + 1] = 0
 
     def ParsingError(self):

@@ -43,18 +43,6 @@ Example: computing the derivative of the data
 
   y' = D(y)/D(x)
 
-Bad example: a constant cannot be used as an argument for a lambda function
-
-  x' = x
-
-  y' = 5
-
-Example: setting y to a constant value
-
-  x' = x
-
-  y' = 5 + 0*y
-
 Command Line Interface
 ----------------------
 
@@ -70,9 +58,7 @@ In the case a dataset is split over different files it is possible
 to make pygraph automatically merge them, by simply enclosing the relevant
 list of files within curly brackets as:
 
-$ pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
-
-Please notice the space between the brackets and the file list.
+$ pygraph {rho.1.xg rho.2.xg rho.3.h5} { */data/vel[0].x.asc }
 
 In case you wish to combine two datasets, using one's y data as the other's
 x data, you can use
@@ -83,7 +69,7 @@ this will plot file1 using file2's y data as its x data.
 
 You can also use {} merge and @ pushforward together, as in
 
-$ pygraph { file1 file2 } @ { file3 file4 }
+$ pygraph { file1 file2 }@ {file3 file4}
 
 For more informations see
 

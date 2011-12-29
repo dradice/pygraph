@@ -61,6 +61,10 @@ class MainWindow(QMainWindow):
         """
         super(MainWindow, self).__init__(parent)
 
+        args = " ".join(args).replace("{", " { ").replace("}", " } ").replace(
+                                                        "@", " @ ").split(" ")
+        [args.remove("") for i in args if i == ""]
+
         # Read data
         while '{' in args:
             if '}' not in args:
