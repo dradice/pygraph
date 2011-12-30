@@ -60,14 +60,14 @@ list of files within curly brackets as:
 
 $ pygraph {rho.1.xg rho.2.xg rho.3.h5} { */data/vel[0].x.asc }
 
-In case you wish to combine two datasets, using one's y data as the other's
-x data, you can use
+In case you wish to combine two datasets, using the y-data of the second one
+as the x data of the first one, you can use
 
 $ pygraph file1 @ file2
 
-this will plot file1 using file2's y data as its x data.
+this will plot file1 using file2 y-data as its x-data.
 
-You can also use {} merge and @ pushforward together, as in
+You can also use {} and @ together, as in
 
 $ pygraph { file1 file2 }@ {file3 file4}
 
