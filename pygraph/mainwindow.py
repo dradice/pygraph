@@ -3,6 +3,7 @@ import pygraph.data as data
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor, D
+from pygraph.hardcopy import Hardcopy
 
 import pygraph.resources
 
@@ -92,11 +93,10 @@ class MainWindow(QMainWindow):
         data.settings["Animation/FPS"] = qset.value("Animation/FPS",
                 QVariant(data.settings["Animation/FPS"])).toFloat()[0]
 
-        size = qset.value("MainWindow/Size", QVariant(QSize(600,400)))
-        self.resize(size.toSize())
-
         position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
         self.move(position.toPoint())
+        size = qset.value("MainWindow/Size", QVariant(QSize(600,400)))
+        self.resize(size.toSize())
 
         data.settings["DataEditor/Position"] = qset.value("DataEditor/Position",
                 QVariant(data.settings["DataEditor/Position"])).toPoint()
@@ -305,12 +305,12 @@ class MainWindow(QMainWindow):
         qset = QSettings()
         qset.setValue("Animation/FPS",
                 QVariant(data.settings["Animation/FPS"]))
+        qset.setValue("MainWindow/Position", QVariant(self.pos()))
+        qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("DataEditor/Position",
                 QVariant(data.settings["DataEditor/Position"]))
         qset.setValue("DataEditor/Size",
                 QVariant(data.settings["DataEditor/Size"]))
-        qset.setValue("MainWindow/Size", QVariant(self.size()))
-        qset.setValue("MainWindow/Position", QVariant(self.pos()))
         qset.setValue("Plot/xGridEnabled",
                 str(data.settings["Plot/xGridEnabled"]))
         qset.setValue("Plot/yGridEnabled",
@@ -487,15 +487,23 @@ class MainWindow(QMainWindow):
         Exports all datasets in separated files
         """
         self.pauseSlot()
+        timeList = [self.tinit, self.tfinal, self.timestep]
+        hardcopy = Hardcopy(timeList)
+        hardcopy.exec_()
+        startTime = timeList[3]
+        endTime = timeList[4]
+
+        if (startTime, endTime) == (-1, -1):
+            return
+
         dest = QFileDialog.getExistingDirectory(self,
                                     "Choose destination directory", os.curdir)
         if dest:
-            frameNumber = int((self.tfinal - self.tinit) / self.timestep)
+            frameNumber = int((endTime - startTime) / self.timestep)
             n = len(str(frameNumber))
             t_cur = self.time
-            i = 0
             for i in xrange(frameNumber + 1):
-                self.time = self.tinit + i * self.timestep
+                self.time = startTime + i * self.timestep
                 self.plotFrame()
                 QPixmap().grabWidget(self.plotwidget).save(dest + os.sep
                                      + "frame-" + str(i).zfill(n) + ".png")
