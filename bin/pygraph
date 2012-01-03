@@ -1,6 +1,13 @@
 #!/bin/env python
 
 import sys
+
+# the following two lines are needed to execute on Ubuntu
+# I tried to check wether the append is permanent (i.e. the modify 
+# persists after execution) and it seems it isnt'.
+import os
+sys.path.append(os.getcwd())
+
 from PyQt4.QtGui import QApplication
 from pygraph.mainwindow import MainWindow
 from optparse import OptionParser
@@ -15,6 +22,7 @@ parser.add_option("-l", "--log", action="store_true", default=False,
         dest="logscale", help="Use logaritmic scale")
 parser.add_option("-r", "--reflevel", dest="reflevel",
         help="Plot only the given refinement level")
+
 (options, args) = parser.parse_args()
 
 if options.reflevel is not None:

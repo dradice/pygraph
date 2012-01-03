@@ -7,6 +7,7 @@ from pygraph.dataeditor import DataEditor, D
 import pygraph.resources
 
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QPixmap
 from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
         QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
         QTimer, QVariant, QMessageBox
@@ -129,6 +130,8 @@ class MainWindow(QMainWindow):
                 "Ctrl+I", "document-open", "Import a data file")
         exportDataAction = self.createAction("&Export...", self.exportFrameSlot,
                 "Ctrl+S", "document-save-as", "Export the current frame")
+        hardcopyAction = self.createAction("&Hardcopy", self.hardcopySlot,
+                "Ctrl+C", "document-save-as", "Hardcopy")
         quitAction = self.createAction("&Quit", self.close,
                 "Ctrl+Q", "system-log-out", "Close the application")
 
@@ -169,6 +172,7 @@ class MainWindow(QMainWindow):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(importDataAction)
         fileMenu.addAction(exportDataAction)
+        fileMenu.addAction(hardcopyAction)
         fileMenu.addSeparator()
         fileMenu.addAction(quitAction)
 
@@ -478,6 +482,26 @@ class MainWindow(QMainWindow):
             f.writelines(L[:-1])
             f.close()
 
+    def hardcopySlot(self):
+        """
+        Exports all datasets in separated files
+        """
+        self.pauseSlot()
+        dest = QFileDialog.getExistingDirectory(self,
+                                    "Choose destination directory", os.curdir)
+        if dest:
+            frameNumber = int((self.tfinal - self.tinit) / self.timestep)
+            n = len(str(frameNumber))
+            t_cur = self.time
+            i = 0
+            for i in xrange(frameNumber + 1):
+                self.time = self.tinit + i * self.timestep
+                self.plotFrame()
+                QPixmap().grabWidget(self.plotwidget).save(dest + os.sep
+                                     + "frame-" + str(i).zfill(n) + ".png")
+            self.time = t_cur
+            self.plotFrame()
+
 ###############################################################################
 # Edit menu
 ###############################################################################
@@ -639,7 +663,7 @@ class MainWindow(QMainWindow):
 
     def plotAll(self):
         """
-        Toggle the 'show all' feature
+        Show all frames at once
         """
         if not self.plotAllFlag:
             self.plotAllFlag = True

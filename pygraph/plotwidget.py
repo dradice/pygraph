@@ -3,9 +3,7 @@ from PyQt4.Qwt5.qplt import QwtPlot, QColor, QwtPlotGrid, QwtLegend, Qwt, \
                             DotLine, QwtPlotZoomer, QwtPicker, Qt,\
                             QwtEventPattern, QwtPlotPicker, SIGNAL, \
                             QRectF, QwtPlotCurve, QBrush, QwtSymbol, \
-                            QSize
-
-from PyQt4.Qwt5.qplt import QwtLog10ScaleEngine
+                            QSize, QwtLog10ScaleEngine
 
 import pygraph.data as data
 
