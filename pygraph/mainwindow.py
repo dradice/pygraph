@@ -7,7 +7,7 @@ from pygraph.hardcopy import Hardcopy
 
 import pygraph.resources
 
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, QStringList
 from PyQt4.QtGui import QPixmap
 from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
         QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
@@ -63,9 +63,9 @@ class MainWindow(QMainWindow):
         """
         super(MainWindow, self).__init__(parent)
 
-        args = " ".join(args).replace("{", " { ").replace("}", " } ").replace(
-                                                        "@", " @ ").split(" ")
-        [args.remove("") for i in args if i == ""]
+#        args = " ".join(args).replace("{", " { ").replace("}", " } ").replace(
+#                                                        "@", " @ ").split(" ")
+#        [args.remove("") for i in args if i == ""]
 
         # Read data
         while '{' in args:
@@ -451,12 +451,14 @@ class MainWindow(QMainWindow):
         """
         Exports a data frame in ASCII format or as an image
         """
-        filterString = "Gnuplot ASCII (*.dat)"
+        filterString = QStringList()
+        filterString.append("Gnuplot ASCII .dat (*.dat)")
+        filterString.append("Portable Network Graphics .png (*.png)")
 
         dialog = QFileDialog(self)
         dialog.setDirectory(os.curdir)
-        dialog.setNameFilter(filterString)
-        dialog.selectNameFilter("*.dat")
+        dialog.setNameFilters(filterString)
+#        dialog.selectNameFilter("*.dat")
         dialog.setFileMode(QFileDialog.AnyFile)
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         dialog.setConfirmOverwrite(True)
@@ -464,23 +466,27 @@ class MainWindow(QMainWindow):
         if dialog.exec_():
             files = dialog.selectedFiles()
             fileName = str(files.first())
+            extension = dialog.selectedFilter()
 
-            frames = {}
-            for key, item in self.datasets.iteritems():
-                frames[key] = item.find_frame(self.time)
+            if extension == "Gnuplot ASCII .dat (*.dat)":
+                frames = {}
+                for key, item in self.datasets.iteritems():
+                    frames[key] = item.find_frame(self.time)
 
-            L = []
-            idx = 0
-            for key, item in frames.iteritems():
-                L.append("# Index " + str(idx) + ": " + key + ' @ t = ' +
-                        str(item.time) + '\n')
-                L += item.format()
-                L.append("\n\n")
-                idx += 1
+                L = []
+                idx = 0
+                for key, item in frames.iteritems():
+                    L.append("# Index " + str(idx) + ": " + key + ' @ t = ' +
+                            str(item.time) + '\n')
+                    L += item.format()
+                    L.append("\n\n")
+                    idx += 1
 
-            f = open(fileName, "w")
-            f.writelines(L[:-1])
-            f.close()
+                f = open(fileName, "w")
+                f.writelines(L[:-1])
+                f.close()
+            elif extension == "Portable Network Graphics .png (*.png)":
+                QPixmap().grabWidget(self.plotwidget).save(fileName)
 
     def hardcopySlot(self):
         """
