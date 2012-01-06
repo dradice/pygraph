@@ -57,6 +57,6 @@ class Hardcopy(QDialog):
 
     def cancelEvent(self):
         """Store the settings"""
-        self.timeList.append(-1)
-        self.timeList.append(-1)
+        self.timeList.append(None)
+        self.timeList.append(None)
         self.close()

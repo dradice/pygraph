@@ -499,7 +499,7 @@ class MainWindow(QMainWindow):
         startTime = timeList[3]
         endTime = timeList[4]
 
-        if (startTime, endTime) == (-1, -1):
+        if startTime is None and endTime is None:
             return
 
         dest = QFileDialog.getExistingDirectory(self,
