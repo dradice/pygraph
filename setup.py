@@ -26,7 +26,7 @@ class QtBuild(build):
 
 setup(
 		name = 'pygraph',
-		version = '0.0',
+		version = '0.1b',
 		description = 'A freely available, lightweight and easy to use ' +
             'visualization client for viewing 1D data files.',
         author = 'David Radice',
