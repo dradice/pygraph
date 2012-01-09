@@ -4,6 +4,7 @@ from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor, D
 from pygraph.hardcopy import Hardcopy
+from numpy import *
 
 import pygraph.resources
 
@@ -246,7 +247,7 @@ class MainWindow(QMainWindow):
             exit(1)
 
         return cdataset
-        
+
     def mergeData(self, args, options=None):
         """
         Merge multiple datasets in a single one
@@ -254,7 +255,7 @@ class MainWindow(QMainWindow):
         mergestart = args.index('{')
         mergestop = args.index('}')
         fname = args[mergestart + 1]
-        
+
         for i in range(mergestart + 1, mergestop):
             cdataset = self.loadDataset(args[i], options)
 
@@ -278,7 +279,7 @@ class MainWindow(QMainWindow):
         except IndexError:
             print "Error in command line, check '@' syntax"
             exit(1)
-        
+
         for ds in (dataset1, dataset2):
             if ds not in self.rawdatasets.keys():
                 cdataset = self.loadDataset(ds, options)

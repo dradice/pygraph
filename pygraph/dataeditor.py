@@ -3,6 +3,7 @@ from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
                         QToolButton, QIcon, QPushButton, \
                         QHBoxLayout, QGridLayout, QMessageBox
 from PyQt4.QtCore import QString, SIGNAL
+from numpy import *
 
 import pygraph.data as data
 
@@ -124,7 +125,7 @@ class DataEditor(QDialog):
         i = self.dataList.currentItem()
         row = self.dataList.currentRow()
         expr = str(self.xTransf.text())
-        
+
         if 'x' not in expr:
             expr += " + 0*x"
 
