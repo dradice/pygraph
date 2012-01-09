@@ -327,6 +327,7 @@ class MainWindow(QMainWindow):
             g = eval('lambda x, y:' + self.transforms[key][1])
             self.datasets[key].data_x = f(item.data_x, item.data_y)
             self.datasets[key].data_y = g(item.data_x, item.data_y)
+            self.datasets[key].purge_nans()
 
     def setLimits(self):
         """
