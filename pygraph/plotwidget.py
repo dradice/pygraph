@@ -113,10 +113,16 @@ class PlotWidget(QwtPlot):
         interval_x = self.axisScaleDiv(QwtPlot.xBottom)
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
 
-        xmin_old = interval_x.lowerBound()
-        xmax_old = interval_x.upperBound()
-        ymin_old = interval_y.lowerBound()
-        ymax_old = interval_y.upperBound()
+        try:
+ 	    xmin_old = interval_x.lowerBound()
+            xmax_old = interval_x.upperBound()
+            ymin_old = interval_y.lowerBound()
+            ymax_old = interval_y.upperBound()
+        except AttributeError:
+            xmin_old = interval_x.lBound()
+            xmax_old = interval_x.hBound()
+            ymin_old = interval_x.lBound()
+            ymax_old = interval_x.hBound()
 
         xmin = data.settings["Plot/xMin"]
         xmax = data.settings["Plot/xMax"]
@@ -277,7 +283,14 @@ class PlotWidget(QwtPlot):
         interval_x = self.axisScaleDiv(QwtPlot.xBottom)
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
 
-        data.settings["Plot/xMin"] = interval_x.lowerBound()
-        data.settings["Plot/xMax"] = interval_x.upperBound()
-        data.settings["Plot/yMin"] = interval_y.lowerBound()
-        data.settings["Plot/yMax"] = interval_y.upperBound()
+        try:
+            data.settings["Plot/xMin"] = interval_x.lowerBound()
+            data.settings["Plot/xMax"] = interval_x.upperBound()
+            data.settings["Plot/yMin"] = interval_y.lowerBound()
+            data.settings["Plot/yMax"] = interval_y.upperBound()
+        except AttributeError:
+            data.settings["Plot/xMin"] = interval_x.lBound()
+            data.settings["Plot/xMax"] = interval_x.hBound()
+            data.settings["Plot/yMin"] = interval_y.lBound()
+            data.settings["Plot/yMax"] = interval_y.hBound()
+

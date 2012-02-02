@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         qset = QSettings()
 
         data.settings["Animation/FPS"] = qset.value("Animation/FPS",
-                QVariant(data.settings["Animation/FPS"])).toFloat()[0]
+                QVariant(data.settings["Animation/FPS"])).toDouble()[0]
 
         position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
         self.move(position.toPoint())
@@ -293,7 +293,7 @@ class MainWindow(QMainWindow):
         self.transforms.pop(dataset2)
 
         [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
-        args.insert(idx, dataset1)
+        args.insert(idx - 1, dataset1)
 
     def closeEvent(self, event):
         """
