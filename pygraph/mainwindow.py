@@ -82,6 +82,9 @@ class MainWindow(QMainWindow):
                 self.rawdatasets[fname] = cdataset
                 self.transforms[fname] = ('x', 'y')
 
+        for item in self.rawdatasets.itervalues():
+            item.sort()
+
         self.updateData()
 
         # Restore settings
@@ -323,10 +326,15 @@ class MainWindow(QMainWindow):
         """
         for key, item in self.rawdatasets.iteritems():
             self.datasets[key] = deepcopy(item)
-            f = eval('lambda x, y:' + self.transforms[key][0])
-            g = eval('lambda x, y:' + self.transforms[key][1])
-            self.datasets[key].data_x = f(item.data_x, item.data_y)
-            self.datasets[key].data_y = g(item.data_x, item.data_y)
+            f = eval('lambda x, y, t:' + self.transforms[key][0])
+            g = eval('lambda x, y, t:' + self.transforms[key][1])
+
+            L = []
+            for frame in self.datasets[key]:
+                frame.data_x = f(frame.data_x, frame.data_y, frame.time)
+                frame.data_y = g(frame.data_x, frame.data_y, frame.time)
+                L.append(frame)
+            self.datasets[key].import_framelist(L)
             self.datasets[key].purge_nans()
 
     def setLimits(self):
@@ -439,6 +447,8 @@ class MainWindow(QMainWindow):
             except:
                 QMessageBox.critical(self, "I/O Error",
                         "Could not read %s" % fileName)
+
+            self.rawdatasets[fileName].sort()
 
             self.updateData()
             self.setLimits()

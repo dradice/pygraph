@@ -35,7 +35,7 @@ Example: shifting the data and removing a secular trend
 
   x' = x + 0.5
 
-  y' = y + 0.1*sin(x)*x
+  y' = y + 0.1*sin(x + 2*pi*t)*x
 
 Example: computing the derivative of the data
 

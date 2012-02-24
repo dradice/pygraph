@@ -130,9 +130,9 @@ class DataEditor(QDialog):
             expr += " + 0*x"
 
         try:
-            s = 'lambda x,y:' + expr
+            s = 'lambda x,y,t:' + expr
             f = eval(s)
-            p = f(i.data.data_x, i.data.data_y)
+            p = f(i.data.data_x, i.data.data_y, 0)
             i.transf = (expr, i.transf[1])
             self.xCheck.setVisible(False)
             self.clean[row] = 1
@@ -151,9 +151,9 @@ class DataEditor(QDialog):
             expr += " + 0*y"
 
         try:
-            s = 'lambda x,y:' + expr
+            s = 'lambda x,y,t:' + expr
             f = eval(s)
-            p = f(i.data.data_x, i.data.data_y)
+            p = f(i.data.data_x, i.data.data_y, 0)
             i.transf = (i.transf[0], expr)
             self.yCheck.setVisible(False)
             self.clean[row + 1] = 1
