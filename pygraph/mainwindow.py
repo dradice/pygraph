@@ -238,17 +238,20 @@ class MainWindow(QMainWindow):
         """
         Load a dataset
         """
-        name_re = re.match(r".+\.(\w+)$", name)
-        ext = name_re.group(1)
-        if ext == "xg" or ext == "yg":
-            cdataset = xg.parsefile(name)
-        elif ext == "h5":
-            cdataset = h5.parse_1D_file(name, options.reflevel)
-        elif ext == "asc":
+        if re.match(r".+\.[xyz]\.asc$", name) is not None:
             cdataset = asc.parse_1D_file(name, options.reflevel)
         else:
-            print("Unknown file extension '" + ext + "'!")
-            exit(1)
+            name_re = re.match(r".+\.(\w+)$", name)
+            ext = name_re.group(1)
+            if ext == "xg" or ext == "yg":
+                cdataset = xg.parsefile(name)
+            elif ext == "h5":
+                cdataset = h5.parse_1D_file(name, options.reflevel)
+            elif ext == "asc":
+                cdataset = asc.parse_scalar_file(name)
+            else:
+                print("Unknown file extension '" + ext + "'!")
+                exit(1)
 
         return cdataset
 
@@ -444,8 +447,10 @@ class MainWindow(QMainWindow):
                 fileType = data.formats[fileFilter]
                 if fileType == 'xg':
                     self.rawdatasets[fileName] = xg.parsefile(fileName)
-                elif fileType == "asc":
+                elif fileType == "CarpetIOASCII":
                     self.rawdatasets[fileName] = asc.parse_1D_file(fileName)
+                elif fileType == "CarpetIOScalar":
+                    self.rawdatasets[fileName] = asc.parse_scalar_file(fileName)
                 elif fileType == "h5":
                     self.rawdatasets[fileName] = h5.parse_1D_file(fileName)
                 self.transforms[fileName] = ('x', 'y')
