@@ -238,7 +238,7 @@ class MainWindow(QMainWindow):
         """
         Load a dataset
         """
-        if re.match(r".+\.[xyz]\.asc$", name) is not None:
+        if re.match(r".+\.[xyzd]\.asc$", name) is not None:
             cdataset = asc.parse_1D_file(name, options.reflevel)
         else:
             name_re = re.match(r".+\.(\w+)$", name)
