@@ -41,19 +41,6 @@ class MainWindow(QMainWindow):
     * transforms : a dictionary {filename: (expr, expr)} storing the
                    transformations
     """
-    datasets = {}
-    playAction = None
-    pauseAction = None
-    plotAllFlag = False
-    plotwidget = None
-    rawdatasets = {}
-    tfinal = 0
-    time = 0
-    timer = None
-    timestep = sys.float_info.max
-    tinit = 0
-    transforms = {}
-
 ###############################################################################
 # Initialization methods
 ###############################################################################
@@ -63,6 +50,19 @@ class MainWindow(QMainWindow):
         Setup the main window and import all the given files
         """
         super(MainWindow, self).__init__(parent)
+
+        self.datasets = {}
+        self.playAction = None
+        self.pauseAction = None
+        self.plotAllFlag = False
+        self.plotwidget = None
+        self.rawdatasets = {}
+        self.tfinal = 0
+        self.time = 0
+        self.timer = None
+        self.timestep = sys.float_info.max
+        self.tinit = 0
+        self.transforms = {}
 
         # Read data
         while '{' in args:

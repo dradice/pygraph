@@ -15,18 +15,19 @@ class DataEditor(QDialog):
     """
     A dialog to transform datasets
     """
-    dataList = None
-    xTransf = None
-    yTransf = None
-    transforms = None
-
-    xOldText = ''
-    yOldText = ''
-    clean = []
-    previous = None
 
     def __init__(self, transforms, rawdatasets, parent=None):
         super(DataEditor, self).__init__(parent)
+
+        self.dataList = None
+        self.xTransf = None
+        self.yTransf = None
+        self.transforms = None
+
+        self.xOldText = ''
+        self.yOldText = ''
+        self.clean = []
+        self.previous = None
 
         self.setWindowTitle(QString("Data Editor"))
         self.resize(data.settings["DataEditor/Size"])

@@ -29,18 +29,18 @@ class PlotWidget(QwtPlot):
         showall : boolean
         zoomer  : QwtPlotZoom object
     """
-    acurves = {}
-    clist = []
-    curves = {}
-    grid = None
-    hidden = {}
-    litems = {}
-    showall = False
-    zoomer = None
-
     def __init__(self, parent=None):
         super(PlotWidget, self).__init__(parent)
         self.setCanvasBackground(QColor("white"))
+
+        self.acurves = {}
+        self.clist = []
+        self.curves = {}
+        self.grid = None
+        self.hidden = {}
+        self.litems = {}
+        self.showall = False
+        self.zoomer = None
 
         self.grid = QwtPlotGrid()
         self.grid.attach(self)
