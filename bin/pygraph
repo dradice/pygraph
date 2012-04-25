@@ -1,5 +1,9 @@
 #!/bin/env python
 
+# Ignore PyGTK warnings
+import warnings
+warnings.filterwarnings("ignore", r".*PyGTK.*")
+
 import sys
 
 # the following two lines are needed to execute on Ubuntu
