@@ -3,6 +3,7 @@ from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
                         QToolButton, QIcon, QPushButton, \
                         QHBoxLayout, QGridLayout, QMessageBox
 from PyQt4.QtCore import QString, SIGNAL
+from numpy import *
 
 import pygraph.data as data
 
@@ -14,18 +15,19 @@ class DataEditor(QDialog):
     """
     A dialog to transform datasets
     """
-    dataList = None
-    xTransf = None
-    yTransf = None
-    transforms = None
-
-    xOldText = ''
-    yOldText = ''
-    clean = []
-    previous = None
 
     def __init__(self, transforms, rawdatasets, parent=None):
         super(DataEditor, self).__init__(parent)
+
+        self.dataList = None
+        self.xTransf = None
+        self.yTransf = None
+        self.transforms = None
+
+        self.xOldText = ''
+        self.yOldText = ''
+        self.clean = []
+        self.previous = None
 
         self.setWindowTitle(QString("Data Editor"))
         self.resize(data.settings["DataEditor/Size"])
@@ -124,14 +126,14 @@ class DataEditor(QDialog):
         i = self.dataList.currentItem()
         row = self.dataList.currentRow()
         expr = str(self.xTransf.text())
-        
+
         if 'x' not in expr:
             expr += " + 0*x"
 
         try:
-            s = 'lambda x,y:' + expr
+            s = 'lambda x,y,t:' + expr
             f = eval(s)
-            p = f(i.data.data_x, i.data.data_y)
+            p = f(i.data.data_x, i.data.data_y, 0)
             i.transf = (expr, i.transf[1])
             self.xCheck.setVisible(False)
             self.clean[row] = 1
@@ -150,9 +152,9 @@ class DataEditor(QDialog):
             expr += " + 0*y"
 
         try:
-            s = 'lambda x,y:' + expr
+            s = 'lambda x,y,t:' + expr
             f = eval(s)
-            p = f(i.data.data_x, i.data.data_y)
+            p = f(i.data.data_x, i.data.data_y, 0)
             i.transf = (i.transf[0], expr)
             self.yCheck.setVisible(False)
             self.clean[row + 1] = 1

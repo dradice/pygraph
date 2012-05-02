@@ -4,6 +4,7 @@ from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor, D
 from pygraph.hardcopy import Hardcopy
+from numpy import *
 
 import pygraph.resources
 
@@ -40,19 +41,6 @@ class MainWindow(QMainWindow):
     * transforms : a dictionary {filename: (expr, expr)} storing the
                    transformations
     """
-    datasets = {}
-    playAction = None
-    pauseAction = None
-    plotAllFlag = False
-    plotwidget = None
-    rawdatasets = {}
-    tfinal = 0
-    time = 0
-    timer = None
-    timestep = sys.float_info.max
-    tinit = 0
-    transforms = {}
-
 ###############################################################################
 # Initialization methods
 ###############################################################################
@@ -62,6 +50,19 @@ class MainWindow(QMainWindow):
         Setup the main window and import all the given files
         """
         super(MainWindow, self).__init__(parent)
+
+        self.datasets = {}
+        self.playAction = None
+        self.pauseAction = None
+        self.plotAllFlag = False
+        self.plotwidget = None
+        self.rawdatasets = {}
+        self.tfinal = 0
+        self.time = 0
+        self.timer = None
+        self.timestep = sys.float_info.max
+        self.tinit = 0
+        self.transforms = {}
 
         # Read data
         while '{' in args:
@@ -76,10 +77,14 @@ class MainWindow(QMainWindow):
         for i in range(len(args)):
             fname = args[i]
             if fname not in self.rawdatasets.keys():
+                print("Load " + str(fname))
                 cdataset = self.loadDataset(fname, options)
 
                 self.rawdatasets[fname] = cdataset
                 self.transforms[fname] = ('x', 'y')
+
+        for item in self.rawdatasets.itervalues():
+            item.sort()
 
         self.updateData()
 
@@ -87,7 +92,7 @@ class MainWindow(QMainWindow):
         qset = QSettings()
 
         data.settings["Animation/FPS"] = qset.value("Animation/FPS",
-                QVariant(data.settings["Animation/FPS"])).toFloat()[0]
+                QVariant(data.settings["Animation/FPS"])).toDouble()[0]
 
         position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
         self.move(position.toPoint())
@@ -233,20 +238,23 @@ class MainWindow(QMainWindow):
         """
         Load a dataset
         """
-        name_re = re.match(r".+\.(\w+)$", name)
-        ext = name_re.group(1)
-        if ext == "xg" or ext == "yg":
-            cdataset = xg.parsefile(name)
-        elif ext == "h5":
-            cdataset = h5.parse_1D_file(name, options.reflevel)
-        elif ext == "asc":
+        if re.match(r".+\.[xyzd]\.asc$", name) is not None:
             cdataset = asc.parse_1D_file(name, options.reflevel)
         else:
-            print("Unknown file extension '" + ext + "'!")
-            exit(1)
+            name_re = re.match(r".+\.(\w+)$", name)
+            ext = name_re.group(1)
+            if ext == "xg" or ext == "yg":
+                cdataset = xg.parsefile(name)
+            elif ext == "h5":
+                cdataset = h5.parse_1D_file(name, options.reflevel)
+            elif ext == "asc":
+                cdataset = asc.parse_scalar_file(name)
+            else:
+                print("Unknown file extension '" + ext + "'!")
+                exit(1)
 
         return cdataset
-        
+
     def mergeData(self, args, options=None):
         """
         Merge multiple datasets in a single one
@@ -254,15 +262,18 @@ class MainWindow(QMainWindow):
         mergestart = args.index('{')
         mergestop = args.index('}')
         fname = args[mergestart + 1]
-        
+
+        print("Merge"),
         for i in range(mergestart + 1, mergestop):
             cdataset = self.loadDataset(args[i], options)
+            print(args[i]),
 
             if i == mergestart + 1:
                 self.rawdatasets[fname] = cdataset
                 self.transforms[fname] = ('x', 'y')
             else:
                 self.rawdatasets[fname].merge([cdataset])
+        print('')
 
         [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
         args.insert(mergestart, fname)
@@ -278,7 +289,7 @@ class MainWindow(QMainWindow):
         except IndexError:
             print "Error in command line, check '@' syntax"
             exit(1)
-        
+
         for ds in (dataset1, dataset2):
             if ds not in self.rawdatasets.keys():
                 cdataset = self.loadDataset(ds, options)
@@ -286,13 +297,14 @@ class MainWindow(QMainWindow):
                 self.rawdatasets[ds] = cdataset
                 self.transforms[ds] = ('x', 'y')
 
+        print("Map " + str(dataset1) + " using " + str(dataset2))
         self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
 
         self.rawdatasets.pop(dataset2)
         self.transforms.pop(dataset2)
 
         [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
-        args.insert(idx, dataset1)
+        args.insert(idx - 1, dataset1)
 
     def closeEvent(self, event):
         """
@@ -322,10 +334,16 @@ class MainWindow(QMainWindow):
         """
         for key, item in self.rawdatasets.iteritems():
             self.datasets[key] = deepcopy(item)
-            f = eval('lambda x, y:' + self.transforms[key][0])
-            g = eval('lambda x, y:' + self.transforms[key][1])
-            self.datasets[key].data_x = f(item.data_x, item.data_y)
-            self.datasets[key].data_y = g(item.data_x, item.data_y)
+            f = eval('lambda x, y, t:' + self.transforms[key][0])
+            g = eval('lambda x, y, t:' + self.transforms[key][1])
+
+            L = []
+            for frame in self.datasets[key]:
+                frame.data_x = f(frame.data_x, frame.data_y, frame.time)
+                frame.data_y = g(frame.data_x, frame.data_y, frame.time)
+                L.append(frame)
+            self.datasets[key].import_framelist(L)
+            self.datasets[key].purge_nans()
 
     def setLimits(self):
         """
@@ -429,14 +447,18 @@ class MainWindow(QMainWindow):
                 fileType = data.formats[fileFilter]
                 if fileType == 'xg':
                     self.rawdatasets[fileName] = xg.parsefile(fileName)
-                elif fileType == "asc":
+                elif fileType == "CarpetIOASCII":
                     self.rawdatasets[fileName] = asc.parse_1D_file(fileName)
+                elif fileType == "CarpetIOScalar":
+                    self.rawdatasets[fileName] = asc.parse_scalar_file(fileName)
                 elif fileType == "h5":
                     self.rawdatasets[fileName] = h5.parse_1D_file(fileName)
                 self.transforms[fileName] = ('x', 'y')
             except:
                 QMessageBox.critical(self, "I/O Error",
                         "Could not read %s" % fileName)
+
+            self.rawdatasets[fileName].sort()
 
             self.updateData()
             self.setLimits()
