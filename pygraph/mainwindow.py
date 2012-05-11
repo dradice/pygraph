@@ -678,7 +678,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self, "PyGraph",
             "<p>A freely available, lightweight and easy to use visualization "
             "client for viewing 1D data files.</p>"
-            "<p>Copyright (c) 2011 Massimiliano Leoni and David Radice</p>"
+            "<p>Copyright (c) 2012 Massimiliano Leoni and David Radice</p>"
             "<p>Distributed under the GPLv3 license.</p>")
 
 ###############################################################################
