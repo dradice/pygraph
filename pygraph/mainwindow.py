@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
         for i in range(len(args)):
             fname = args[i]
             if fname not in self.rawdatasets.keys():
-                print("Load " + str(fname))
+                print("L " + str(fname))
                 cdataset = self.loadDataset(fname, options)
 
                 self.rawdatasets[fname] = cdataset
@@ -263,7 +263,7 @@ class MainWindow(QMainWindow):
         mergestop = args.index('}')
         fname = args[mergestart + 1]
 
-        print("Merge"),
+        print("J"),
         for i in range(mergestart + 1, mergestop):
             cdataset = self.loadDataset(args[i], options)
             print(args[i]),
@@ -297,7 +297,7 @@ class MainWindow(QMainWindow):
                 self.rawdatasets[ds] = cdataset
                 self.transforms[ds] = ('x', 'y')
 
-        print("Map " + str(dataset1) + " using " + str(dataset2))
+        print("M " + str(dataset1) + " using " + str(dataset2))
         self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
 
         self.rawdatasets.pop(dataset2)
