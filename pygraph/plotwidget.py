@@ -215,7 +215,11 @@ class PlotWidget(QwtPlot):
                 self.curves[key] = QwtPlotCurve(ltext)
                 self.curves[key].attach(self)
 
-                mycolor = self.clist.pop(0)
+                try:
+                    mycolor = self.clist.pop(0)
+                except:
+                    self.clist = deepcopy(data.colors)
+                    mycolor = self.clist.pop(0)
                 self.curves[key].setPen(QPen(QBrush(QColor(mycolor)), 1))
 
                 qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(mycolor)),
