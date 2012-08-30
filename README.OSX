@@ -23,5 +23,5 @@ The following instructions have been provided by Barry Wardell
   cd pygraph
   sudo python setup.py install
 8. Put the pygraph executable on your $PATH:
-  ln -s /opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pygraph /opt/local/bin/pygraph
+  sudo ln -s /opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pygraph /opt/local/bin/pygraph
 9. Run pygraph
