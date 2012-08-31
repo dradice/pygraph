@@ -17,6 +17,18 @@ Requirements
 * >= qwt-5.2
 * <  qwt-6.0
 
+Installation
+------------
+
+After all the required packages are installed, pygraph can be installed using
+the following commands
+
+$ hg clone --insecure https://bitbucket.org/dradice/pygraph
+
+$ cd pygraph
+
+$ sudo python setup.py install
+
 Mouse shortcuts
 ---------------
 
