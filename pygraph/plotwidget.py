@@ -155,15 +155,14 @@ class PlotWidget(QwtPlot):
         # Add the new zoom to the zoomstack
         # this should not be executed when this method is called by __init__
         # i.e. when self.zoomer is None
-        if self.zoomer is not None and (
-                xmin_old != xmin or xmax_old != xmax or
-                ymin_old != ymin or ymax_old != ymax):
-            zoomStack = self.zoomer.zoomStack()
-            zoomStack.append(QRectF(xmin, ymin, xmax-xmin, ymax-ymin))
-            self.zoomer.setZoomStack(zoomStack)
-
-        # this sets the current axis as zoom base
-        #self.zoomer.setZoomBase(True)
+        if self.zoomer is not None:
+            if xmin_old != xmin or xmax_old != xmax or\
+                ymin_old != ymin or ymax_old != ymax:
+                zoomStack = self.zoomer.zoomStack()
+                zoomStack.append(QRectF(xmin, ymin, xmax-xmin, ymax-ymin))
+                self.zoomer.setZoomStack(zoomStack)
+            # this sets the current axis as zoom base
+            self.zoomer.setZoomBase(True)
 
     def plotAll(self, datasets):
         """this function plots all the frames at once"""
