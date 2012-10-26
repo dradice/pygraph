@@ -240,15 +240,19 @@ class MainWindow(QMainWindow):
         """
         if re.match(r".+\.[xyzd]\.asc$", name) is not None:
             cdataset = asc.parse_1D_file(name, options.reflevel)
+            cdataset.is0D = False
         else:
             name_re = re.match(r".+\.(\w+)$", name)
             ext = name_re.group(1)
             if ext == "xg" or ext == "yg":
                 cdataset = xg.parsefile(name)
+                cdataset.is0D = False
             elif ext == "h5":
                 cdataset = h5.parse_1D_file(name, options.reflevel)
+                cdataset.is0D = False
             elif ext == "asc":
                 cdataset = asc.parse_scalar_file(name)
+                cdataset.is0D = True
             else:
                 print("Unknown file extension '" + ext + "'!")
                 exit(1)
@@ -270,9 +274,18 @@ class MainWindow(QMainWindow):
 
             if i == mergestart + 1:
                 self.rawdatasets[fname] = cdataset
-                self.transforms[fname] = ('x', 'y')
+                self.transforms[fname]  = ('x', 'y')
             else:
-                self.rawdatasets[fname].merge([cdataset])
+                if self.rawdatasets[fname].is0D:
+                    assert cdataset.is0D
+                    frame_a = self.rawdatasets[fname].frame(0)
+                    frame_b = cdataset.frame(0)
+                    frame_a.merge(frame_b)
+                    self.rawdatasets[fname].import_framelist([frame_a])
+                    self.rawdatasets[fname].is0D = True
+                else:
+                    self.rawdatasets[fname].merge([cdataset])
+                    self.rawdatasets[fname].is0D = False
         print('')
 
         [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
