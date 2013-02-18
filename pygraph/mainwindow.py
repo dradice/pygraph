@@ -404,8 +404,8 @@ class MainWindow(QMainWindow):
         n1 = len(str(int(self.tfinal)))
         st = str(self.timestep)
         n2 = len(st[st.find('.')+1:])
-        nt = n1 + n2
-        self.timeFormat = '%{}.{}f'.format(nt, n2)
+        nt = n1 + n2 + 2
+        self.timeFormat = '% {}.{}f'.format(nt, n2)
 
         self.nframes = int((self.tfinal - self.tinit) / self.timestep)
         self.slider.setRange(0, self.nframes)
