@@ -403,9 +403,13 @@ class MainWindow(QMainWindow):
         # Formatting options for the time
         n1 = len(str(int(self.tfinal)))
         st = str(self.timestep)
-        n2 = len(st[st.find('.')+1:])
+        idx = st.find('.')
+        if idx >= 0:
+            n2 = len(st[idx + 1:])
+        else:
+            n2 = 1
         nt = n1 + n2 + 2
-        self.timeFormat = '% {}.{}f'.format(nt, n2)
+        self.timeFormat = '% ' + str(nt) + '.' + str(n2) + 'f'
 
         self.nframes = int((self.tfinal - self.tinit) / self.timestep)
         self.slider.setRange(0, self.nframes)

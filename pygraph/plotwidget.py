@@ -13,7 +13,7 @@ def shortText(text, length):
     if len(text) < length:
         return text
     else:
-        return "..." + text[-length+3:-1] + text[-1]
+        return text[0:length/2] + "..." + text[-length/2:]
 
 class PlotWidget(QwtPlot):
     """
