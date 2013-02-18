@@ -400,13 +400,12 @@ class MainWindow(QMainWindow):
             if len(dt) > 0:
                 self.timestep = min(self.timestep, min(dt))
 
-        # Computes maximum string lenght for the time
-        t = self.time
-        self.rjustSize = len(str(t))
-        while t < self.tfinal:
-            t += self.timestep
-            self.rjustSize = max(self.rjustSize, len(str(t)))
-        self.rjustSize += 1
+        # Formatting options for the time
+        n1 = len(str(int(self.tfinal)))
+        st = str(self.timestep)
+        n2 = len(st[st.find('.')+1:])
+        nt = n1 + n2
+        self.timeFormat = '%{}.{}f'.format(nt, n2)
 
         self.nframes = int((self.tfinal - self.tinit) / self.timestep)
         self.slider.setRange(0, self.nframes)
@@ -738,7 +737,7 @@ class MainWindow(QMainWindow):
 
         self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 
-        tstring = "t = " + str(self.time).rjust(self.rjustSize)
+        tstring = "t = " + self.timeFormat % self.time
         self.plotwidget.plotFrame(frames, tstring)
 
     def timeout(self):
