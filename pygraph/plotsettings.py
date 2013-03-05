@@ -3,7 +3,7 @@ from PyQt4.QtGui import QDialog, QWidget, QLabel, QLineEdit, QGridLayout, \
                         QCheckBox, QPushButton, QHBoxLayout, QFrame, \
                         QVBoxLayout
 
-from pygraph.data import settings
+from pygraph.database import settings
 
 class PlotSettings(QDialog):
     """A dialog to change plotting preferences"""

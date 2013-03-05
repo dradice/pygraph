@@ -2,7 +2,7 @@ from PyQt4.QtGui import QDialog, QLabel, QPushButton,\
         QGridLayout, QDoubleSpinBox
 from PyQt4.QtCore import QString, SIGNAL
 
-import pygraph.data as data
+import pygraph.database as data
 
 class Hardcopy(QDialog):
     """

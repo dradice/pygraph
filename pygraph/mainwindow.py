@@ -1,5 +1,5 @@
 from copy import deepcopy
-import pygraph.data as data
+import pygraph.database as data
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor, D

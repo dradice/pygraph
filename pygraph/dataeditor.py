@@ -5,7 +5,7 @@ from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
 from PyQt4.QtCore import QString, SIGNAL
 from numpy import *
 
-import pygraph.data as data
+import pygraph.database as data
 
 def D(x):
     q = diff(x)

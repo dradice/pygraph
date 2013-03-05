@@ -5,7 +5,7 @@ from PyQt4.Qwt5.qplt import QwtPlot, QColor, QwtPlotGrid, QwtLegend, Qwt, \
                             QRectF, QwtPlotCurve, QBrush, QwtSymbol, \
                             QSize, QwtLog10ScaleEngine
 
-import pygraph.data as data
+import pygraph.database as data
 
 from copy import deepcopy
 
