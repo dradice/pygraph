@@ -245,6 +245,16 @@ class PlotWidget(QwtPlot):
         self.replot()
 
 
+    def resetLegend(self):
+        """
+            Reset the name of the fields in the legend
+        """
+        for key, item in self.curves.iteritems():
+            item.setTitle(shortText(key,\
+                    data.settings["Plot/legendTextLength"]))
+        self.updateLayout()
+
+
     def resetZoomer(self):
         """
             Reset the zoomer stack

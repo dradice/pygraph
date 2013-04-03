@@ -104,6 +104,9 @@ class MainWindow(QMainWindow):
         data.settings["DataEditor/Size"] = qset.value("DataEditor/Size",
                 QVariant(data.settings["DataEditor/Size"])).toSize()
 
+        data.settings["Plot/legendTextLength"] = qset.value(
+            "Plot/legendTextLength", QVariant(data.settings[
+                "Plot/legendTextLength"])).toInt()[0]
         data.settings["Plot/xGridEnabled"] = qset.value(
             "Plot/xGridEnabled", QVariant(QString(str(
                 data.settings["Plot/xGridEnabled"])))).toString() == 'True'
@@ -141,6 +144,8 @@ class MainWindow(QMainWindow):
                 "Ctrl+D", None, "Edit the data")
         plotSettingsAction = self.createAction("&Plot...",
                 self.plotSettingsSlot, "Ctrl+P", None, "Plot preferences")
+        legendEditAction = self.createAction("&Legend...", self.legendEditSlot,
+                "Ctrl+L", None, "Maximum length of the items in the legend")
         FPSEditAction = self.createAction("&FPS...", self.FPSEditSlot,
                 "Ctrl+F", None, "Set the number of frames per second")
 
@@ -181,6 +186,7 @@ class MainWindow(QMainWindow):
         editMenu = self.menuBar().addMenu("&Edit")
         editMenu.addAction(dataEditAction)
         editMenu.addAction(plotSettingsAction)
+        editMenu.addAction(legendEditAction)
         editMenu.addAction(FPSEditAction)
 
         # Play menu
@@ -332,6 +338,8 @@ class MainWindow(QMainWindow):
                 QVariant(data.settings["DataEditor/Position"]))
         qset.setValue("DataEditor/Size",
                 QVariant(data.settings["DataEditor/Size"]))
+        qset.setValue("Plot/legendTextLength",
+                QVariant(data.settings["Plot/legendTextLength"]))
         qset.setValue("Plot/xGridEnabled",
                 str(data.settings["Plot/xGridEnabled"]))
         qset.setValue("Plot/yGridEnabled",
@@ -583,6 +591,17 @@ class MainWindow(QMainWindow):
         self.connect(pltsettings, SIGNAL("changed"),
                 self.plotwidget.applySettings)
         pltsettings.show()
+
+    def legendEditSlot(self):
+        """
+        Sets the maximum length of the legend
+        """
+        length, ok = QInputDialog.getInt(self, "Maximum length of the items " +\
+                "in the legend", "Length", data.settings["Plot/legendTextLength"],
+                6, 256, 1)
+        if ok and length != data.settings["Plot/legendTextLength"]:
+            data.settings["Plot/legendTextLength"] = length
+            self.plotwidget.resetLegend()
 
     def FPSEditSlot(self):
         """
