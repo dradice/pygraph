@@ -253,8 +253,11 @@ class PlotWidget(QwtPlot):
             Reset the name of the fields in the legend
         """
         for key, item in self.curves.iteritems():
-            item.setTitle(shortText(key,\
-                    data.settings["Plot/legendTextLength"]))
+            ltext = shortText(key, data.settings["Plot/legendTextLength"])
+            ltext = QwtText(ltext)
+            ltext.setFont(QFont(data.settings["Plot/font"],
+                    data.settings["Plot/legendFontSize"]))
+            item.setTitle(ltext)
         self.updateLayout()
 
 
