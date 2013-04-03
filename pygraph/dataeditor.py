@@ -16,7 +16,7 @@ class DataEditor(QDialog):
     A dialog to transform datasets
     """
 
-    def __init__(self, transforms, rawdatasets, parent=None):
+    def __init__(self, keys, transforms, rawdatasets, parent=None):
         super(DataEditor, self).__init__(parent)
 
         self.dataList = None
@@ -39,8 +39,8 @@ class DataEditor(QDialog):
         self.dataList.setSelectionMode(QAbstractItemView.SingleSelection)
 
         items = []
-        for key, transf in transforms.iteritems():
-            items.append(ListObj(key, transf, rawdatasets[key]))
+        for key in keys:
+            items.append(ListObj(key, transforms[key], rawdatasets[key]))
 
         for it in items:
             self.dataList.addItem(it)

@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
 
     Members
     * datasets   : a dictionary {filename: monodataset} storing working data
+    * order      : an ordered list of filenames
     * plotwidget : the plot widget
     * playAction : the "play" action
     * pauseAction: the "pause" action
@@ -52,6 +53,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         self.datasets = {}
+        self.keys = []
         self.playAction = None
         self.pauseAction = None
         self.plotAllFlag = False
@@ -65,6 +67,8 @@ class MainWindow(QMainWindow):
         self.transforms = {}
 
         # Read data
+        self.keys = deepcopy(args)
+
         while '{' in args:
             if '}' not in args:
                 print("Unmatched '{' parentesis in command line!")
@@ -85,6 +89,8 @@ class MainWindow(QMainWindow):
 
         for item in self.rawdatasets.itervalues():
             item.sort()
+
+        self.keys = [f for f in self.keys if self.rawdatasets.has_key(f)]
 
         self.updateData()
 
@@ -482,6 +488,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "I/O Error",
                         "Could not read %s" % fileName)
 
+            self.keys.append(fileName)
+
             self.rawdatasets[fileName].sort()
 
             self.updateData()
@@ -567,7 +575,8 @@ class MainWindow(QMainWindow):
         Rescale/shift the data
         """
         if len(self.datasets.keys()) > 0:
-            dataedit = DataEditor(self.transforms, self.rawdatasets, self)
+            dataedit = DataEditor(self.keys, self.transforms,
+                    self.rawdatasets, self)
             self.connect(dataedit, SIGNAL("changed"), self.updateDataSlot)
             dataedit.show()
         else:
@@ -735,7 +744,7 @@ class MainWindow(QMainWindow):
         if not self.plotAllFlag:
             self.plotAllFlag = True
             self.pauseSlot()
-            self.plotwidget.plotAll(self.datasets)
+            self.plotwidget.plotAll(self.keys, self.datasets)
         else:
             self.plotAllFlag = False
             self.plotwidget.unPlotAll()
@@ -761,7 +770,7 @@ class MainWindow(QMainWindow):
         self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 
         tstring = "t = " + self.timeFormat % self.time
-        self.plotwidget.plotFrame(frames, tstring)
+        self.plotwidget.plotFrame(self.keys, frames, tstring)
 
     def timeout(self):
         """

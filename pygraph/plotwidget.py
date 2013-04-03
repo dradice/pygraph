@@ -164,11 +164,12 @@ class PlotWidget(QwtPlot):
             # this sets the current axis as zoom base
             self.zoomer.setZoomBase(True)
 
-    def plotAll(self, datasets):
+    def plotAll(self, keys, datasets):
         """this function plots all the frames at once"""
         clist = deepcopy(data.colors)
         self.acurves = {}
-        for key, dataset in datasets.iteritems():
+        for key in keys:
+            dataset = datasets[key]
             self.acurves[key] = []
             mycolor = clist.pop(0)
             basecolor = QColor(mycolor).toHsv()
@@ -196,7 +197,7 @@ class PlotWidget(QwtPlot):
         self.showall = True
         self.replot()
 
-    def plotFrame(self, datasets, title=None):
+    def plotFrame(self, keys, datasets, title=None):
         """
             this function plots a single frame from the 'data' dictionary
             data has the form {'name':(xp, yp)} where 'name' is the curve's
@@ -205,7 +206,8 @@ class PlotWidget(QwtPlot):
 
             WARNING: the 'name' entries have to be unique!!!
         """
-        for key, rawdata in datasets.iteritems():
+        for key in keys:
+            rawdata = datasets[key]
             if not self.curves.has_key(key):
                 ltext = shortText(key, data.settings["Plot/legendTextLength"])
                 ltext = QwtText(ltext)
@@ -232,7 +234,8 @@ class PlotWidget(QwtPlot):
 
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
 
-        for key, litem in self.litems.iteritems():
+        for key in keys:
+            litem = self.litems[key]
             litem.setChecked(not self.hidden[key])
             litem.setIdentifierWidth(24)
 
