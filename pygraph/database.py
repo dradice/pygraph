@@ -7,6 +7,7 @@ Shared application data
 """
 settings = {
         "Animation/FPS": 2,
+        "Animation/Smooth": False,
         "DataEditor/Position": QPoint(0,0),
         "DataEditor/Size": QSize(500,300),
         "Plot/legendFontSize": 8,

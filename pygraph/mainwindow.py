@@ -521,7 +521,10 @@ class MainWindow(QMainWindow):
             if extension == "Gnuplot ASCII .dat (*.dat)":
                 frames = {}
                 for key, item in self.datasets.iteritems():
-                    frames[key] = item.find_frame(self.time)
+                    if data.settings['Animation/Smooth']:
+                        frames[key] = item.time_interp(self.time)
+                    else:
+                        frames[key] = item.find_frame(self.time)
 
                 L = []
                 idx = 0
@@ -765,7 +768,10 @@ class MainWindow(QMainWindow):
 
         frames = {}
         for key, item in self.datasets.iteritems():
-            frames[key] = item.find_frame(self.time)
+            if data.settings['Animation/Smooth']:
+                frames[key] = item.time_interp(self.time)
+            else:
+                frames[key] = item.find_frame(self.time)
 
         self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 
