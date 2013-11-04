@@ -224,6 +224,7 @@ class MainWindow(QMainWindow):
         playToolbar.setFloatable(False)
         playToolbar.setMovable(False)
         playToolbar.setObjectName("PlayToolbar")
+        playToolbar.setIconSize(data.settings['ToolBar/IconSize'])
         playToolbar.addAction(gotoStartAction)
         playToolbar.addAction(stepBackwardAction)
         playToolbar.addAction(self.playAction)
