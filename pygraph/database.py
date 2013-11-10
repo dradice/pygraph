@@ -1,5 +1,6 @@
 import sys
 
+import platform
 from PyQt4.Qt import QPoint, QSize
 
 """
@@ -10,10 +11,10 @@ settings = {
         "Animation/Smooth": False,
         "DataEditor/Position": QPoint(0,0),
         "DataEditor/Size": QSize(500,300),
-        "Plot/legendFontSize": 12,
+        "Plot/legendFontSize": 8,
         "Plot/legendTextLength": 30,
         "Plot/font": "Monospace",
-        "Plot/titleFontSize": 12,
+        "Plot/titleFontSize": 10,
         "Plot/xAxisTitle": "x",
         "Plot/xGridEnabled": False,
         "Plot/xLogScale": False,
@@ -29,6 +30,11 @@ settings = {
         "PlotSettings/Size": QSize(500,300),
         "ToolBar/IconSize": QSize(32,32)
         }
+
+# Use a different font size on Mac OS X
+if platform.system() == 'Darwin':
+    settings['Plot/legendFontSize'] = 12
+    settings['Plot/titleFontSize']  = 12
 
 colors = [
         "Blue",
