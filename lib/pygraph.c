@@ -27,7 +27,7 @@ int pygwrite(
     char dname[BUFSIZ];
     snprintf(dname, BUFSIZ, "%d", ts);
 
-    hsize_t dim = 3*np;
+    hsize_t dim = 2*np;
     hid_t dspace_id = H5Screate_simple(1, &dim, NULL);
     ierr |= dspace_id < 0;
     hid_t dset_id = H5Dcreate2(group_id, dname, H5T_NATIVE_FLOAT,
