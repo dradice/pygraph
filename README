@@ -89,6 +89,16 @@ For more informations see
 
 $ pygraph --help
 
+Pygraph data format (.pyg)
+--------------------------
+
+pygraph also has its own HDF5-based data format. You should consider using this
+format over the old xgraph ASCII format when creating large data files as
+reading PYG data does not require any (slow) string parsing.
+
+The .PYG data format is undocumented, but a reference C implementation of a
+.PYG writer is provided in the "lib" directory.
+
 
 Acknowledgements
 ----------------
