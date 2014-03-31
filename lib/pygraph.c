@@ -1,4 +1,8 @@
+#include <assert.h>
 #include <stdio.h>
+#include <unistd.h>
+
+#include "pygraph.h"
 
 int pygwrite(
         char const * fname,
