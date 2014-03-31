@@ -16,6 +16,7 @@ from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
 import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
+import scidata.pygraph as pyg
 import scidata.xgraph as xg
 import sys
 import os
@@ -257,7 +258,10 @@ class MainWindow(QMainWindow):
         else:
             name_re = re.match(r".+\.(\w+)$", name)
             ext = name_re.group(1)
-            if ext == "xg" or ext == "yg":
+            if ext == "pyg":
+                cdataset = pyg.parsefile(name)
+                cdataset.is0D = False
+            elif ext == "xg" or ext == "yg":
                 cdataset = xg.parsefile(name)
                 cdataset.is0D = False
             elif ext == "h5":
