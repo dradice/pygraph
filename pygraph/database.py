@@ -58,5 +58,7 @@ formats = {
         "Carpet ASCII (*.?.asc)": "CarpetIOASCII",
         "Carpet Scalar (*.asc)": "CarpetIOScalar",
         "Carpet HDF5 (*.h5)": "h5",
+        "Legagy PyGraph HDF5 (*.pyg)": "pygraph",
+        "PyGraph HDF5 (*.h5)": "pygraph",
         "xGraph and yGraph formats (*.xg *.yg)": "xg"
         }

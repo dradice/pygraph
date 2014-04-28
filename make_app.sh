@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PYTHONPATH=$PYTHONPATH:$PWD
+
 MAKEICNS=/opt/local/bin/makeicns
 PYINSTALLER=/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pyinstaller 
 

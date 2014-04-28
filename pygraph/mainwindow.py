@@ -5,6 +5,7 @@ from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor, D
 from pygraph.hardcopy import Hardcopy
 from numpy import *
+from scidata.utils import FileTypeError
 
 import pygraph.resources
 
@@ -265,7 +266,10 @@ class MainWindow(QMainWindow):
                 cdataset = xg.parsefile(name)
                 cdataset.is0D = False
             elif ext == "h5":
-                cdataset = h5.parse_1D_file(name, options.reflevel)
+                try:
+                    cdataset = pyg.parsefile(name)
+                except FileTypeError:
+                    cdataset = h5.parse_1D_file(name, options.reflevel)
                 cdataset.is0D = False
             elif ext == "asc":
                 cdataset = asc.parse_scalar_file(name)
@@ -488,6 +492,8 @@ class MainWindow(QMainWindow):
                     self.rawdatasets[fileName] = asc.parse_scalar_file(fileName)
                 elif fileType == "h5":
                     self.rawdatasets[fileName] = h5.parse_1D_file(fileName)
+                elif fileType == "pygraph":
+                    self.rawdatasets[fileName] = pyg.parsefile(fileName)
                 self.transforms[fileName] = ('x', 'y')
             except:
                 QMessageBox.critical(self, "I/O Error",

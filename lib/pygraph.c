@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "pygraph.h"
+static int const pyg_version = 1;
 
 int pygwrite(
         char const * fname,
@@ -19,6 +19,15 @@ int pygwrite(
     }
     else {
         file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        hsize_t dim = 1;
+        hid_t dspace_id = H5Screate_simple(1, &dim, NULL);
+        ierr |= dspace_id < 0;
+        hid_t attr_id = H5Acreate2(file_id, "pyg_version",
+                H5T_NATIVE_INT, dspace_id, H5P_DEFAULT, H5P_DEFAULT);
+        ierr |= attr_id < 0;
+        H5Awrite(attr_id, H5T_NATIVE_INT, &pyg_version);
+        H5Aclose(attr_id);
+        H5Sclose(dspace_id);
     }
     ierr |= file_id < 0;
     hid_t group_id = H5Gopen(file_id, "/", H5P_DEFAULT);
