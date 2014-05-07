@@ -14,6 +14,7 @@ from PyQt4.QtGui import QPixmap
 from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
         QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
         QTimer, QVariant, QMessageBox
+import math
 import re
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
@@ -422,6 +423,8 @@ class MainWindow(QMainWindow):
                     if item.time[i] - item.time[i-1] > 0]
             if len(dt) > 0:
                 self.timestep = min(self.timestep, min(dt))
+        int_n_timesteps = math.ceil((self.tfinal - self.tinit)/self.timestep)
+        self.timestep = (self.tfinal - self.tinit)/int_n_timesteps
 
         # Formatting options for the time
         n1 = len(str(int(self.tfinal)))
@@ -569,11 +572,13 @@ class MainWindow(QMainWindow):
         dest = QFileDialog.getExistingDirectory(self,
                                     "Choose destination directory", os.curdir)
         if dest:
-            frameNumber = int((endTime - startTime) / self.timestep)
+            frameNumber = math.ceil((endTime - startTime) / self.timestep)
             n = len(str(frameNumber))
             t_cur = self.time
             for i in xrange(frameNumber + 1):
                 self.time = startTime + i * self.timestep
+                if self.time > endTime:
+                    self.time = endTime
                 self.plotFrame()
                 QPixmap().grabWidget(self.plotwidget).save(dest + os.sep
                                      + "frame-" + str(i).zfill(n) + ".png")
@@ -798,6 +803,8 @@ class MainWindow(QMainWindow):
         else:
             self.time += self.timestep
         if(self.time > self.tfinal):
+            self.time = self.tfinal
+            self.plotFrame()
             self.pauseSlot()
         else:
             self.plotFrame()
