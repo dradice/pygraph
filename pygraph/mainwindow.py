@@ -424,7 +424,8 @@ class MainWindow(QMainWindow):
             if len(dt) > 0:
                 self.timestep = min(self.timestep, min(dt))
         int_n_timesteps = math.ceil((self.tfinal - self.tinit)/self.timestep)
-        self.timestep = (self.tfinal - self.tinit)/int_n_timesteps
+        if int_n_timesteps > 0:
+            self.timestep = (self.tfinal - self.tinit)/int_n_timesteps
 
         # Formatting options for the time
         n1 = len(str(int(self.tfinal)))
