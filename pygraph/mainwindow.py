@@ -573,7 +573,7 @@ class MainWindow(QMainWindow):
         dest = QFileDialog.getExistingDirectory(self,
                                     "Choose destination directory", os.curdir)
         if dest:
-            frameNumber = math.ceil((endTime - startTime) / self.timestep)
+            frameNumber = int(math.ceil((endTime - startTime) / self.timestep))
             n = len(str(frameNumber))
             t_cur = self.time
             for i in xrange(frameNumber + 1):
