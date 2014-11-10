@@ -1,5 +1,5 @@
 from copy import deepcopy
-import pygraph.database as data
+import pygraph.common as common
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
 from pygraph.dataeditor import DataEditor, D
@@ -100,39 +100,40 @@ class MainWindow(QMainWindow):
         # Restore settings
         qset = QSettings()
 
-        data.settings["Animation/FPS"] = qset.value("Animation/FPS",
-                QVariant(data.settings["Animation/FPS"])).toDouble()[0]
+        common.settings["Animation/FPS"] = qset.value("Animation/FPS",
+                QVariant(common.settings["Animation/FPS"])).toDouble()[0]
 
         position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
         self.move(position.toPoint())
         size = qset.value("MainWindow/Size", QVariant(QSize(600,400)))
         self.resize(size.toSize())
 
-        data.settings["DataEditor/Position"] = qset.value("DataEditor/Position",
-                QVariant(data.settings["DataEditor/Position"])).toPoint()
-        data.settings["DataEditor/Size"] = qset.value("DataEditor/Size",
-                QVariant(data.settings["DataEditor/Size"])).toSize()
+        common.settings["DataEditor/Position"] = \
+                qset.value("DataEditor/Position",
+                QVariant(common.settings["DataEditor/Position"])).toPoint()
+        common.settings["DataEditor/Size"] = qset.value("DataEditor/Size",
+                QVariant(common.settings["DataEditor/Size"])).toSize()
 
-        data.settings["Plot/legendTextLength"] = qset.value(
-            "Plot/legendTextLength", QVariant(data.settings[
+        common.settings["Plot/legendTextLength"] = qset.value(
+            "Plot/legendTextLength", QVariant(common.settings[
                 "Plot/legendTextLength"])).toInt()[0]
-        data.settings["Plot/xGridEnabled"] = qset.value(
+        common.settings["Plot/xGridEnabled"] = qset.value(
             "Plot/xGridEnabled", QVariant(QString(str(
-                data.settings["Plot/xGridEnabled"])))).toString() == 'True'
-        data.settings["Plot/yGridEnabled"] = qset.value(
+                common.settings["Plot/xGridEnabled"])))).toString() == 'True'
+        common.settings["Plot/yGridEnabled"] = qset.value(
             "Plot/yGridEnabled", QVariant(QString(str(
-                data.settings["Plot/yGridEnabled"])))).toString() == 'True'
+                common.settings["Plot/yGridEnabled"])))).toString() == 'True'
 
-        data.settings["PlotSettings/Position"] = qset.value(
+        common.settings["PlotSettings/Position"] = qset.value(
                 "PlotSettings/Position", QVariant(
-                    data.settings["PlotSettings/Position"])).toPoint()
-        data.settings["PlotSettings/Size"] = qset.value("PlotSettings/Size",
-                QVariant(data.settings["PlotSettings/Size"])).toSize()
+                    common.settings["PlotSettings/Position"])).toPoint()
+        common.settings["PlotSettings/Size"] = qset.value("PlotSettings/Size",
+                QVariant(common.settings["PlotSettings/Size"])).toSize()
 
         self.timer = QTimer()
-        self.timer.setInterval(1000.0/data.settings["Animation/FPS"])
+        self.timer.setInterval(1000.0/common.settings["Animation/FPS"])
 
-        data.settings["Plot/yLogScale"] = options.logscale
+        common.settings["Plot/yLogScale"] = options.logscale
 
         # Create plot
         self.plotwidget = PlotWidget(self)
@@ -227,7 +228,7 @@ class MainWindow(QMainWindow):
         playToolbar.setFloatable(False)
         playToolbar.setMovable(False)
         playToolbar.setObjectName("PlayToolbar")
-        playToolbar.setIconSize(data.settings['ToolBar/IconSize'])
+        playToolbar.setIconSize(common.settings['ToolBar/IconSize'])
         playToolbar.addAction(gotoStartAction)
         playToolbar.addAction(stepBackwardAction)
         playToolbar.addAction(self.playAction)
@@ -347,23 +348,23 @@ class MainWindow(QMainWindow):
         """
         qset = QSettings()
         qset.setValue("Animation/FPS",
-                QVariant(data.settings["Animation/FPS"]))
+                QVariant(common.settings["Animation/FPS"]))
         qset.setValue("MainWindow/Position", QVariant(self.pos()))
         qset.setValue("MainWindow/Size", QVariant(self.size()))
         qset.setValue("DataEditor/Position",
-                QVariant(data.settings["DataEditor/Position"]))
+                QVariant(common.settings["DataEditor/Position"]))
         qset.setValue("DataEditor/Size",
-                QVariant(data.settings["DataEditor/Size"]))
+                QVariant(common.settings["DataEditor/Size"]))
         qset.setValue("Plot/legendTextLength",
-                QVariant(data.settings["Plot/legendTextLength"]))
+                QVariant(common.settings["Plot/legendTextLength"]))
         qset.setValue("Plot/xGridEnabled",
-                str(data.settings["Plot/xGridEnabled"]))
+                str(common.settings["Plot/xGridEnabled"]))
         qset.setValue("Plot/yGridEnabled",
-                str(data.settings["Plot/yGridEnabled"]))
+                str(common.settings["Plot/yGridEnabled"]))
         qset.setValue("PlotSettings/Position",
-                QVariant(data.settings["PlotSettings/Position"]))
+                QVariant(common.settings["PlotSettings/Position"]))
         qset.setValue("PlotSettings/Size",
-                QVariant(data.settings["PlotSettings/Size"]))
+                QVariant(common.settings["PlotSettings/Size"]))
 
     def updateData(self):
         """
@@ -398,10 +399,10 @@ class MainWindow(QMainWindow):
 
         size = ymax - ymin
 
-        data.settings['Plot/xMin'] = xmin
-        data.settings['Plot/xMax'] = xmax
-        data.settings['Plot/yMin'] = ymin - 0.1*size
-        data.settings['Plot/yMax'] = ymax + 0.1*size
+        common.settings['Plot/xMin'] = xmin
+        common.settings['Plot/xMax'] = xmax
+        common.settings['Plot/yMin'] = ymin - 0.1*size
+        common.settings['Plot/yMax'] = ymax + 0.1*size
 
         self.plotwidget.applySettings()
         self.plotwidget.resetZoomer()
@@ -472,7 +473,7 @@ class MainWindow(QMainWindow):
         Import data using the GUI
         """
         fileFilters = ""
-        for key, value in data.formats.iteritems():
+        for key, value in common.formats.iteritems():
             fileFilters += ";;" + key
         filterString = fileFilters[2:]
 
@@ -487,7 +488,7 @@ class MainWindow(QMainWindow):
             fileFilter = str(dialog.selectedNameFilter())
 
             try:
-                fileType = data.formats[fileFilter]
+                fileType = common.formats[fileFilter]
                 if fileType == 'xg':
                     self.rawdatasets[fileName] = xg.parsefile(fileName)
                 elif fileType == "CarpetIOASCII":
@@ -536,7 +537,7 @@ class MainWindow(QMainWindow):
             if extension == "Gnuplot ASCII .dat (*.dat)":
                 frames = {}
                 for key, item in self.datasets.iteritems():
-                    if data.settings['Animation/Smooth']:
+                    if common.settings['Animation/Smooth']:
                         frames[key] = item.time_interp(self.time)
                     else:
                         frames[key] = item.find_frame(self.time)
@@ -626,10 +627,10 @@ class MainWindow(QMainWindow):
         Sets the maximum length of the legend
         """
         length, ok = QInputDialog.getInt(self, "Maximum length of the items " +\
-                "in the legend", "Length", data.settings["Plot/legendTextLength"],
-                6, 256, 1)
-        if ok and length != data.settings["Plot/legendTextLength"]:
-            data.settings["Plot/legendTextLength"] = length
+                "in the legend", "Length",
+                common.settings["Plot/legendTextLength"], 6, 256, 1)
+        if ok and length != common.settings["Plot/legendTextLength"]:
+            common.settings["Plot/legendTextLength"] = length
             self.plotwidget.resetLegend()
 
     def FPSEditSlot(self):
@@ -637,10 +638,10 @@ class MainWindow(QMainWindow):
         Sets the FPS
         """
         fps, ok = QInputDialog.getDouble(self, "Number of frames per second",
-                "FPS", data.settings["Animation/FPS"], 1)
-        if ok and fps != data.settings["Animation/FPS"]:
-            data.settings["Animation/FPS"] = fps
-            self.timer.setInterval(1000.0/data.settings["Animation/FPS"])
+                "FPS", common.settings["Animation/FPS"], 1)
+        if ok and fps != common.settings["Animation/FPS"]:
+            common.settings["Animation/FPS"] = fps
+            self.timer.setInterval(1000.0/common.settings["Animation/FPS"])
 
 ###############################################################################
 # Play menu
@@ -785,7 +786,7 @@ class MainWindow(QMainWindow):
 
         frames = {}
         for key, item in self.datasets.iteritems():
-            if data.settings['Animation/Smooth']:
+            if common.settings['Animation/Smooth']:
                 frames[key] = item.time_interp(self.time)
             else:
                 frames[key] = item.find_frame(self.time)
@@ -799,8 +800,8 @@ class MainWindow(QMainWindow):
         """
         Update the plot
         """
-        if data.settings["Animation/FPS"] >= 25:
-            self.time += data.settings["Animation/FPS"]/25*self.timestep
+        if common.settings["Animation/FPS"] >= 25:
+            self.time += common.settings["Animation/FPS"]/25*self.timestep
         else:
             self.time += self.timestep
         if(self.time > self.tfinal):

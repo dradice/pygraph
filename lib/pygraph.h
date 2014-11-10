@@ -6,7 +6,7 @@
 /*
  * pygraph native binary data format: reference implementation
  */
-/* write 1D data in binary pygraph format and returns 0 on success */ 
+/* write 1D data in binary pygraph format and returns 0 on success */
 int pygwrite(
         char const * fname,     /* [in] file name */
         char mode,              /* [in] w:write a:append */

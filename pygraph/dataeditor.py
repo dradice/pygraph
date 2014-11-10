@@ -5,7 +5,7 @@ from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
 from PyQt4.QtCore import QString, SIGNAL
 from numpy import *
 
-import pygraph.database as data
+import pygraph.common as common
 
 def D(x):
     q = diff(x)
@@ -30,8 +30,8 @@ class DataEditor(QDialog):
         self.previous = None
 
         self.setWindowTitle(QString("Data Editor"))
-        self.resize(data.settings["DataEditor/Size"])
-        self.move(data.settings["DataEditor/Position"])
+        self.resize(common.settings["DataEditor/Size"])
+        self.move(common.settings["DataEditor/Position"])
 
         self.transforms = transforms
 
@@ -179,8 +179,8 @@ class DataEditor(QDialog):
 
     def closeEvent(self, event):
         """Store the settings"""
-        data.settings.update({"DataEditor/Position": self.pos()})
-        data.settings.update({"DataEditor/Size": self.size()})
+        common.settings.update({"DataEditor/Position": self.pos()})
+        common.settings.update({"DataEditor/Size": self.size()})
 
 class ListObj(QListWidgetItem):
     """a List Widget equipped with extra infos"""

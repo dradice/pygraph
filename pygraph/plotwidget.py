@@ -5,7 +5,7 @@ from PyQt4.Qwt5.qplt import QwtPlot, QColor, QwtPlotGrid, QwtLegend, Qwt, \
                             QRectF, QwtPlotCurve, QBrush, QwtSymbol, \
                             QSize, QwtLog10ScaleEngine
 
-import pygraph.database as data
+import pygraph.common as common
 
 from copy import deepcopy
 
@@ -76,9 +76,9 @@ class PlotWidget(QwtPlot):
                 QwtPicker.NoSelection, QwtPlotPicker.CrossRubberBand,
                 QwtPicker.AlwaysOn, self.canvas())
         picker.setTrackerPen(QPen(Qt.red))
-        picker.setTrackerFont(QFont(data.settings["Plot/font"]))
+        picker.setTrackerFont(QFont(common.settings["Plot/font"]))
 
-        self.clist = deepcopy(data.colors)
+        self.clist = deepcopy(common.colors)
 
         self.connect(self,
                      SIGNAL("legendChecked(QwtPlotItem*, bool)"),
@@ -97,15 +97,15 @@ class PlotWidget(QwtPlot):
                 (bool) Plot/xMinEnabled, Plot/yMinEnabled:  enable minor grids
 
         """
-        self.setAxisFont(QwtPlot.xBottom, QFont(data.settings["Plot/font"]))
-        self.setAxisFont(QwtPlot.yLeft, QFont(data.settings["Plot/font"]))
+        self.setAxisFont(QwtPlot.xBottom, QFont(common.settings["Plot/font"]))
+        self.setAxisFont(QwtPlot.yLeft, QFont(common.settings["Plot/font"]))
 
-        if data.settings["Plot/xLogScale"]:
+        if common.settings["Plot/xLogScale"]:
             self.setAxisScaleEngine(QwtPlot.xBottom, QwtLog10ScaleEngine())
         else:
             self.setAxisScaleEngine(QwtPlot.xBottom, QwtLinearScaleEngine())
 
-        if data.settings["Plot/yLogScale"]:
+        if common.settings["Plot/yLogScale"]:
             self.setAxisScaleEngine(QwtPlot.yLeft, QwtLog10ScaleEngine())
         else:
             self.setAxisScaleEngine(QwtPlot.yLeft, QwtLinearScaleEngine())
@@ -124,28 +124,28 @@ class PlotWidget(QwtPlot):
             ymin_old = interval_x.lBound()
             ymax_old = interval_x.hBound()
 
-        xmin = data.settings["Plot/xMin"]
-        xmax = data.settings["Plot/xMax"]
+        xmin = common.settings["Plot/xMin"]
+        xmax = common.settings["Plot/xMax"]
 
-        ymin = data.settings["Plot/yMin"]
-        ymax = data.settings["Plot/yMax"]
+        ymin = common.settings["Plot/yMin"]
+        ymax = common.settings["Plot/yMax"]
 
-        if data.settings["Plot/yLogScale"]:
-            ymin = max(ymin, data.settings["Plot/yLogScaleMin"])
+        if common.settings["Plot/yLogScale"]:
+            ymin = max(ymin, common.settings["Plot/yLogScaleMin"])
 
         self.setAxisScale(QwtPlot.xBottom, xmin, xmax)
         self.setAxisScale(QwtPlot.yLeft, ymin, ymax)
 
-        txt = QwtText(data.settings["Plot/xAxisTitle"])
-        txt.setFont(QFont(data.settings["Plot/font"]))
+        txt = QwtText(common.settings["Plot/xAxisTitle"])
+        txt.setFont(QFont(common.settings["Plot/font"]))
         self.setAxisTitle(QwtPlot.xBottom, txt)
 
-        txt = QwtText(data.settings["Plot/yAxisTitle"])
-        txt.setFont(QFont(data.settings["Plot/font"]))
+        txt = QwtText(common.settings["Plot/yAxisTitle"])
+        txt.setFont(QFont(common.settings["Plot/font"]))
         self.setAxisTitle(QwtPlot.yLeft, txt)
 
-        self.grid.enableX(data.settings["Plot/xGridEnabled"])
-        self.grid.enableY(data.settings["Plot/yGridEnabled"])
+        self.grid.enableX(common.settings["Plot/xGridEnabled"])
+        self.grid.enableY(common.settings["Plot/yGridEnabled"])
 
         # following option can't be modified, for now
         self.grid.setPen(QPen(DotLine))
@@ -166,7 +166,7 @@ class PlotWidget(QwtPlot):
 
     def plotAll(self, keys, datasets):
         """this function plots all the frames at once"""
-        clist = deepcopy(data.colors)
+        clist = deepcopy(common.colors)
         self.acurves = {}
         for key in keys:
             dataset = datasets[key]
@@ -209,17 +209,17 @@ class PlotWidget(QwtPlot):
         for key in keys:
             rawdata = datasets[key]
             if not self.curves.has_key(key):
-                ltext = shortText(key, data.settings["Plot/legendTextLength"])
+                ltext = shortText(key, common.settings["Plot/legendTextLength"])
                 ltext = QwtText(ltext)
-                ltext.setFont(QFont(data.settings["Plot/font"],
-                    data.settings["Plot/legendFontSize"]))
+                ltext.setFont(QFont(common.settings["Plot/font"],
+                    common.settings["Plot/legendFontSize"]))
                 self.curves[key] = QwtPlotCurve(ltext)
                 self.curves[key].attach(self)
 
                 try:
                     mycolor = self.clist.pop(0)
                 except:
-                    self.clist = deepcopy(data.colors)
+                    self.clist = deepcopy(common.colors)
                     mycolor = self.clist.pop(0)
                 self.curves[key].setPen(QPen(QBrush(QColor(mycolor)), 1))
 
@@ -241,8 +241,8 @@ class PlotWidget(QwtPlot):
 
         if title is not None:
             tstring = QwtText(title)
-            tstring.setFont(QFont(data.settings["Plot/font"],
-                data.settings["Plot/titleFontSize"]))
+            tstring.setFont(QFont(common.settings["Plot/font"],
+                common.settings["Plot/titleFontSize"]))
             self.setTitle(tstring)
 
         self.replot()
@@ -253,10 +253,10 @@ class PlotWidget(QwtPlot):
             Reset the name of the fields in the legend
         """
         for key, item in self.curves.iteritems():
-            ltext = shortText(key, data.settings["Plot/legendTextLength"])
+            ltext = shortText(key, common.settings["Plot/legendTextLength"])
             ltext = QwtText(ltext)
-            ltext.setFont(QFont(data.settings["Plot/font"],
-                    data.settings["Plot/legendFontSize"]))
+            ltext.setFont(QFont(common.settings["Plot/font"],
+                    common.settings["Plot/legendFontSize"]))
             item.setTitle(ltext)
         self.updateLayout()
 
@@ -303,13 +303,13 @@ class PlotWidget(QwtPlot):
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
 
         try:
-            data.settings["Plot/xMin"] = interval_x.lowerBound()
-            data.settings["Plot/xMax"] = interval_x.upperBound()
-            data.settings["Plot/yMin"] = interval_y.lowerBound()
-            data.settings["Plot/yMax"] = interval_y.upperBound()
+            common.settings["Plot/xMin"] = interval_x.lowerBound()
+            common.settings["Plot/xMax"] = interval_x.upperBound()
+            common.settings["Plot/yMin"] = interval_y.lowerBound()
+            common.settings["Plot/yMax"] = interval_y.upperBound()
         except AttributeError:
-            data.settings["Plot/xMin"] = interval_x.lBound()
-            data.settings["Plot/xMax"] = interval_x.hBound()
-            data.settings["Plot/yMin"] = interval_y.lBound()
-            data.settings["Plot/yMax"] = interval_y.hBound()
+            common.settings["Plot/xMin"] = interval_x.lBound()
+            common.settings["Plot/xMax"] = interval_x.hBound()
+            common.settings["Plot/yMin"] = interval_y.lBound()
+            common.settings["Plot/yMax"] = interval_y.hBound()
 
