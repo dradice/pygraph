@@ -1,9 +1,11 @@
 from copy import deepcopy
+import numpy as np
 import pygraph.common as common
+from pygraph.dataeditor import DataEditor
+from pygraph.hardcopy import Hardcopy
+from pygraph.datasets import DataSetType, DataSet
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
-from pygraph.dataeditor import DataEditor, D
-from pygraph.hardcopy import Hardcopy
 from numpy import *
 from scidata.utils import FileTypeError
 
@@ -16,10 +18,6 @@ from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
         QTimer, QVariant, QMessageBox
 import math
 import re
-import scidata.carpet.ascii as asc
-import scidata.carpet.hdf5 as h5
-import scidata.pygraph as pyg
-import scidata.xgraph as xg
 import sys
 import os
 
@@ -28,22 +26,17 @@ class MainWindow(QMainWindow):
     pygraph main window class
 
     Members
-    * datasets   : a dictionary {filename: monodataset} storing working data
-    * order      : an ordered list of filenames
+    * dataset    : a dictionary of DataSets
     * plotwidget : the plot widget
     * playAction : the "play" action
     * pauseAction: the "pause" action
     * plotAllFlag: a flag to check wheter plotAll feature is being used or not
-    * rawdatasets: a dictionary {filename: monodataset} storing the original
-                   data
     * rjustSize  : maximum length of the "time" string
     * tfinal     : final time
     * time       : current (physical) time
     * timer      : QTimer()
     * timestep   : timestep
     * tinit      : initial time
-    * transforms : a dictionary {filename: (expr, expr)} storing the
-                   transformations
     """
 ###############################################################################
 # Initialization methods
@@ -55,46 +48,30 @@ class MainWindow(QMainWindow):
         """
         super(MainWindow, self).__init__(parent)
 
-        self.datasets = {}
-        self.keys = []
-        self.playAction = None
+        self.datasets    = {}
+        self.playAction  = None
         self.pauseAction = None
         self.plotAllFlag = False
-        self.plotwidget = None
-        self.rawdatasets = {}
-        self.tfinal = 0
-        self.time = 0
-        self.timer = None
-        self.timestep = sys.float_info.max
-        self.tinit = 0
-        self.transforms = {}
+        self.plotwidget  = None
+        self.tfinal      = 0
+        self.time        = 0
+        self.timer       = None
+        self.timestep    = sys.float_info.max
+        self.tinit       = 0
 
         # Read data
-        self.keys = deepcopy(args)
-
-        while '{' in args:
-            if '}' not in args:
-                print("Unmatched '{' parentesis in command line!")
+        self.parseCLI(args, options)
+        for key, dset in self.datasets.iteritems():
+            try:
+                dset.read_data()
+            except FileTypeError as e:
+                QMessageBox.critical(self, "I/O Error",
+                        "Could not read file " + str(e))
                 exit(1)
-            self.mergeData(args, options)
-
-        while '@' in args:
-            self.pushForward(args, options)
-
-        for i in range(len(args)):
-            fname = args[i]
-            if fname not in self.rawdatasets.keys():
-                print("L " + str(fname))
-                cdataset = self.loadDataset(fname, options)
-
-                self.rawdatasets[fname] = cdataset
-                self.transforms[fname] = ('x', 'y')
-
-        for item in self.rawdatasets.itervalues():
-            item.sort()
-
-        self.keys = [f for f in self.keys if self.rawdatasets.has_key(f)]
-
+            except:
+                QMessageBox.critical(self, "I/O Error",
+                        "Coud not read dataset " + key)
+                exit(1)
         self.updateData()
 
         # Restore settings
@@ -251,96 +228,55 @@ class MainWindow(QMainWindow):
 
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
-    def loadDataset(self, name, options=None):
+    def parseCLI(self, args, options):
         """
-        Load a dataset
+        Parse the command line options
         """
-        if re.match(r".+\.[xyzd]\.asc$", name) is not None:
-            cdataset = asc.parse_1D_file(name, options.reflevel)
-            cdataset.is0D = False
-        else:
-            name_re = re.match(r".+\.(\w+)$", name)
-            ext = name_re.group(1)
-            if ext == "pyg":
-                cdataset = pyg.parsefile(name)
-                cdataset.is0D = False
-            elif ext == "xg" or ext == "yg":
-                cdataset = xg.parsefile(name)
-                cdataset.is0D = False
-            elif ext == "h5":
-                try:
-                    cdataset = pyg.parsefile(name)
-                except FileTypeError:
-                    cdataset = h5.parse_1D_file(name, options.reflevel)
-                cdataset.is0D = False
-            elif ext == "asc":
-                cdataset = asc.parse_scalar_file(name)
-                cdataset.is0D = True
+        currKey   = None
+        groupMode = False
+        mapMode   = False
+        while len(args) > 0:
+            arg = args.pop(0)
+            if arg == '{':
+                print("{")
+                if '}' not in args:
+                    print("Unmatched '{' in command line!")
+                    exit(1)
+                groupMode = True
+                if currKey is None:
+                    currKey = arg = args.pop(0)
+                    print("A " + arg)
+                    self.datasets[arg] = DataSet(arg,
+                            DataSetType.guess_from_name(arg), options.reflevel)
+                    self.datasets[arg].add_datafile(arg)
+                elif not mapMode:
+                    print("Something went wrong while parsing the command line")
+                    exit(1)
+            elif arg == '@':
+                if groupMode:
+                    print("'@' inside a '{' '}' block!")
+                    exit(1)
+                mapMode   = True
+            elif arg == '}':
+                print("}")
+                groupMode = False
+                mapMode   = False
             else:
-                print("Unknown file extension '" + ext + "'!")
-                exit(1)
-
-        return cdataset
-
-    def mergeData(self, args, options=None):
-        """
-        Merge multiple datasets in a single one
-        """
-        mergestart = args.index('{')
-        mergestop = args.index('}')
-        fname = args[mergestart + 1]
-
-        print("J"),
-        for i in range(mergestart + 1, mergestop):
-            cdataset = self.loadDataset(args[i], options)
-            print(args[i]),
-
-            if i == mergestart + 1:
-                self.rawdatasets[fname] = cdataset
-                self.transforms[fname]  = ('x', 'y')
-            else:
-                if self.rawdatasets[fname].is0D:
-                    assert cdataset.is0D
-                    frame_a = self.rawdatasets[fname].frame(0)
-                    frame_b = cdataset.frame(0)
-                    frame_a.merge(frame_b)
-                    self.rawdatasets[fname].import_framelist([frame_a])
-                    self.rawdatasets[fname].is0D = True
+                if mapMode:
+                    print("M " + arg)
+                    self.datasets[currKey].add_mapfile(arg)
+                    if not groupMode:
+                        currKey = None
+                        mapMode = False
+                elif groupMode:
+                    print("A " + arg)
+                    self.datasets[currKey].add_datafile(arg)
                 else:
-                    self.rawdatasets[fname].merge([cdataset])
-                    self.rawdatasets[fname].is0D = False
-        print('')
-
-        [args.pop(mergestart) for i in range(mergestart, mergestop + 1)]
-        args.insert(mergestart, fname)
-
-    def pushForward(self, args, options=None):
-        """
-        Plots a dataset using another dataset's y axis as its x axis
-        """
-        try:
-            idx = args.index('@')
-            dataset1 = args[idx - 1]
-            dataset2 = args[idx + 1]
-        except IndexError:
-            print "Error in command line, check '@' syntax"
-            exit(1)
-
-        for ds in (dataset1, dataset2):
-            if ds not in self.rawdatasets.keys():
-                cdataset = self.loadDataset(ds, options)
-
-                self.rawdatasets[ds] = cdataset
-                self.transforms[ds] = ('x', 'y')
-
-        print("M " + str(dataset1) + " using " + str(dataset2))
-        self.rawdatasets[dataset1].data_x = self.rawdatasets[dataset2].data_y
-
-        self.rawdatasets.pop(dataset2)
-        self.transforms.pop(dataset2)
-
-        [args.pop(idx - 1) for i in range(idx - 1, idx + 2)]
-        args.insert(idx - 1, dataset1)
+                    print("A " + arg)
+                    currKey = arg
+                    self.datasets[arg] = DataSet(arg,
+                            DataSetType.guess_from_name(arg), options.reflevel)
+                    self.datasets[arg].add_datafile(arg)
 
     def closeEvent(self, event):
         """
@@ -370,18 +306,8 @@ class MainWindow(QMainWindow):
         """
         Computes the working data from the initial data
         """
-        for key, item in self.rawdatasets.iteritems():
-            self.datasets[key] = deepcopy(item)
-            f = eval('lambda x, y, t:' + self.transforms[key][0])
-            g = eval('lambda x, y, t:' + self.transforms[key][1])
-
-            L = []
-            for frame in self.datasets[key]:
-                frame.data_x = f(frame.data_x, frame.data_y, frame.time)
-                frame.data_y = g(frame.data_x, frame.data_y, frame.time)
-                L.append(frame)
-            self.datasets[key].import_framelist(L)
-            self.datasets[key].purge_nans()
+        for dset in self.datasets.itervalues():
+            dset.transform_data()
 
     def setLimits(self):
         """
@@ -391,11 +317,11 @@ class MainWindow(QMainWindow):
         xmax = - sys.float_info.max
         ymin =   sys.float_info.max
         ymax = - sys.float_info.max
-        for key, rawdata in self.datasets.iteritems():
-            xmin = min(xmin, rawdata.data_x.min())
-            xmax = max(xmax, rawdata.data_x.max())
-            ymin = min(ymin, rawdata.data_y.min())
-            ymax = max(ymax, rawdata.data_y.max())
+        for dset in self.datasets.itervalues():
+            xmin = min(xmin, dset.data.data_x.min())
+            xmax = max(xmax, dset.data.data_x.max())
+            ymin = min(ymin, dset.data.data_y.min())
+            ymax = max(ymax, dset.data.data_y.max())
 
         size = ymax - ymin
 
@@ -412,18 +338,17 @@ class MainWindow(QMainWindow):
         Computes initial and final time, as well as the timestep
         """
         # Computes initial and final time
-        self.tfinal = max([data.time[-1] for data in self.datasets.values()])
-        self.tinit = min([data.time[0] for data in self.datasets.values()])
+        self.tfinal = max([dset.data.time[-1] for dset in \
+                self.datasets.itervalues()])
+        self.tinit = min([dset.data.time[0] for dset in \
+                self.datasets.itervalues()])
         self.time = self.tinit
 
         # Computes timestep
         self.timestep = sys.float_info.max
-
-        for key, item in self.datasets.iteritems():
-            dt = [item.time[i] - item.time[i-1] for i in range(1, item.nframes)
-                    if item.time[i] - item.time[i-1] > 0]
-            if len(dt) > 0:
-                self.timestep = min(self.timestep, min(dt))
+        for dset in self.datasets.itervalues():
+            dt = np.diff(np.array(dset.data.time)).min()
+            self.timestep = min(self.timestep, dt)
         int_n_timesteps = math.ceil((self.tfinal - self.tinit)/self.timestep)
         if int_n_timesteps > 0:
             self.timestep = (self.tfinal - self.tinit)/int_n_timesteps
@@ -486,27 +411,17 @@ class MainWindow(QMainWindow):
             files = dialog.selectedFiles()
             fileName  = str(files.first())
             fileFilter = str(dialog.selectedNameFilter())
+            fileType = common.formats[fileFilter]
+            self.datasets[fileName] = DataSet(fileName,
+                    DataSetType.guess_from_name(fileName))
+            self.datasets[fileName].add_datafile(fileName, fileType)
 
             try:
-                fileType = common.formats[fileFilter]
-                if fileType == 'xg':
-                    self.rawdatasets[fileName] = xg.parsefile(fileName)
-                elif fileType == "CarpetIOASCII":
-                    self.rawdatasets[fileName] = asc.parse_1D_file(fileName)
-                elif fileType == "CarpetIOScalar":
-                    self.rawdatasets[fileName] = asc.parse_scalar_file(fileName)
-                elif fileType == "h5":
-                    self.rawdatasets[fileName] = h5.parse_1D_file(fileName)
-                elif fileType == "pygraph":
-                    self.rawdatasets[fileName] = pyg.parsefile(fileName)
-                self.transforms[fileName] = ('x', 'y')
+                self.datasets[fileName].read_data()
             except:
                 QMessageBox.critical(self, "I/O Error",
-                        "Could not read %s" % fileName)
-
-            self.keys.append(fileName)
-
-            self.rawdatasets[fileName].sort()
+                        "Could not read file " + fileName)
+                del self.datasets[fileName]
 
             self.updateData()
             self.setLimits()
@@ -537,10 +452,7 @@ class MainWindow(QMainWindow):
             if extension == "Gnuplot ASCII .dat (*.dat)":
                 frames = {}
                 for key, item in self.datasets.iteritems():
-                    if common.settings['Animation/Smooth']:
-                        frames[key] = item.time_interp(self.time)
-                    else:
-                        frames[key] = item.find_frame(self.time)
+                    frames[key] = item.get_frame(self.time)
 
                 L = []
                 idx = 0
@@ -596,8 +508,7 @@ class MainWindow(QMainWindow):
         Rescale/shift the data
         """
         if len(self.datasets.keys()) > 0:
-            dataedit = DataEditor(self.keys, self.transforms,
-                    self.rawdatasets, self)
+            dataedit = DataEditor(self.datasets, self)
             self.connect(dataedit, SIGNAL("changed"), self.updateDataSlot)
             dataedit.show()
         else:
@@ -743,7 +654,8 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self, "PyGraph",
             "<p>A freely available, lightweight and easy to use visualization "
             "client for viewing 1D data files.</p>"
-            "<p>Copyright (c) 2012 Massimiliano Leoni and David Radice</p>"
+            "<p>Copyright (c) 2012, 2013, 2014 "
+            "Massimiliano Leoni and David Radice</p>"
             "<p>Distributed under the GPLv3 license.</p>")
 
 ###############################################################################
@@ -765,7 +677,10 @@ class MainWindow(QMainWindow):
         if not self.plotAllFlag:
             self.plotAllFlag = True
             self.pauseSlot()
-            self.plotwidget.plotAll(self.keys, self.datasets)
+            dsets = {}
+            for key, item in self.datasets.iteritems():
+                dsets[key] = item.data
+            self.plotwidget.plotAll(self.datasets.keys(), dsets)
         else:
             self.plotAllFlag = False
             self.plotwidget.unPlotAll()
@@ -786,15 +701,12 @@ class MainWindow(QMainWindow):
 
         frames = {}
         for key, item in self.datasets.iteritems():
-            if common.settings['Animation/Smooth']:
-                frames[key] = item.time_interp(self.time)
-            else:
-                frames[key] = item.find_frame(self.time)
+            frames[key] = item.get_frame(self.time)
 
         self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 
         tstring = "t = " + self.timeFormat % self.time
-        self.plotwidget.plotFrame(self.keys, frames, tstring)
+        self.plotwidget.plotFrame(self.datasets.keys(), frames, tstring)
 
     def timeout(self):
         """

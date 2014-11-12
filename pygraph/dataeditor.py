@@ -1,3 +1,4 @@
+from copy import deepcopy
 from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
                         QAbstractItemView, QLabel, QLineEdit, \
                         QToolButton, QIcon, QPushButton, \
@@ -6,46 +7,40 @@ from PyQt4.QtCore import QString, SIGNAL
 from numpy import *
 
 import pygraph.common as common
-
-def D(x):
-    q = diff(x)
-    return array([q[0]] + list(q))
+from pygraph.datasets import D
 
 class DataEditor(QDialog):
     """
     A dialog to transform datasets
     """
 
-    def __init__(self, keys, transforms, rawdatasets, parent=None):
+    def __init__(self, datasets, parent=None):
         super(DataEditor, self).__init__(parent)
 
         self.dataList = None
-        self.xTransf = None
-        self.yTransf = None
-        self.transforms = None
+        self.xTransf  = None
+        self.yTransf  = None
 
         self.xOldText = ''
         self.yOldText = ''
-        self.clean = []
+        # Flags invalid transformations
+        self.clean    = []
         self.previous = None
 
         self.setWindowTitle(QString("Data Editor"))
         self.resize(common.settings["DataEditor/Size"])
         self.move(common.settings["DataEditor/Position"])
 
-        self.transforms = transforms
+        self.datasets = datasets
 
+        # Local copy of the transfomations
         self.dataList = QListWidget()
         self.dataList.setSelectionMode(QAbstractItemView.SingleSelection)
 
-        items = []
-        for key in keys:
-            items.append(ListObj(key, transforms[key], rawdatasets[key]))
-
-        for it in items:
-            self.dataList.addItem(it)
-            self.clean += 2 * [1]
-        self.dataList.setCurrentItem(items[0])
+        for key, dset in datasets.iteritems():
+            self.dataList.addItem(ListObj(key, deepcopy(dset.transform)))
+            self.clean += 2 * [True]
+        self.dataList.setCurrentItem(self.dataList.item(0))
 
         xLabel = QLabel("x' = ")
         self.xTransf = QLineEdit()
@@ -106,13 +101,12 @@ class DataEditor(QDialog):
 
     def applyTransf(self):
         """docstring for applyTransf"""
+        self.xTransfValidate()
+        self.yTransfValidate()
         if all(self.clean):
-            tnew = {}
             for idx in range(self.dataList.count()):
-                dataset = self.dataList.item(idx)
-                tnew[dataset.name] = dataset.transf
-
-            self.transforms.update(tnew)
+                item = self.dataList.item(idx)
+                self.datasets[item.name].transform = item.transf
 
             self.emit(SIGNAL("changed"))
         else:
@@ -123,9 +117,10 @@ class DataEditor(QDialog):
 
     def xTransfValidate(self):
         """Validate x-axis transformation"""
-        i = self.dataList.currentItem()
-        row = self.dataList.currentRow()
+        item = self.dataList.currentItem()
+        row  = self.dataList.currentRow()
         expr = str(self.xTransf.text())
+        dset = self.datasets[item.name].data
 
         if 'x' not in expr:
             expr += " + 0*x"
@@ -133,20 +128,21 @@ class DataEditor(QDialog):
         try:
             s = 'lambda x,y,t:' + expr
             f = eval(s)
-            p = f(i.data.data_x, i.data.data_y, 0)
-            i.transf = (expr, i.transf[1])
+            p = f(dset.data_x, dset.data_y, 0)
+            item.transf = (expr, item.transf[1])
             self.xCheck.setVisible(False)
-            self.clean[row] = 1
+            self.clean[row] = True
         except:
             self.xCheck.setVisible(True)
-            i.transf = (expr, i.transf[1])
-            self.clean[row] = 0
+            item.transf = (expr, item.transf[1])
+            self.clean[row] = False
 
     def yTransfValidate(self):
         """Validate y-axis transformation"""
-        i = self.dataList.currentItem()
-        row = self.dataList.currentRow()
+        item = self.dataList.currentItem()
+        row  = self.dataList.currentRow()
         expr = str(self.yTransf.text())
+        dset = self.datasets[item.name].data
 
         if 'y' not in expr:
             expr += " + 0*y"
@@ -154,14 +150,14 @@ class DataEditor(QDialog):
         try:
             s = 'lambda x,y,t:' + expr
             f = eval(s)
-            p = f(i.data.data_x, i.data.data_y, 0)
-            i.transf = (i.transf[0], expr)
+            p = f(dset.data_x, dset.data_y, 0)
+            item.transf = (item.transf[0], expr)
             self.yCheck.setVisible(False)
-            self.clean[row + 1] = 1
+            self.clean[row + 1] = True
         except:
             self.yCheck.setVisible(True)
-            i.transf = (i.transf[0], expr)
-            self.clean[row + 1] = 0
+            item.transf = (item.transf[0], expr)
+            self.clean[row + 1] = False
 
     def ParsingError(self):
         """docstring for ParsingError"""
@@ -172,8 +168,8 @@ class DataEditor(QDialog):
     def update_Ui(self, current, previous):
         """Updates the GUI"""
         self.previous = previous
-        self.xTransf.setText(current.transf[0])
-        self.yTransf.setText(current.transf[1])
+        self.xTransf.setText(current.data[0])
+        self.yTransf.setText(current.data[1])
         self.xTransfValidate()
         self.yTransfValidate()
 
@@ -184,9 +180,8 @@ class DataEditor(QDialog):
 
 class ListObj(QListWidgetItem):
     """a List Widget equipped with extra infos"""
-    def __init__(self, name, transformation, data):
+    def __init__(self, name, transf):
         super(ListObj, self).__init__(name)
 
-        self.name = name
-        self.transf = transformation
-        self.data = data
+        self.name   = name
+        self.transf = transf
