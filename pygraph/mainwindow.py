@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from pygraph.common import debug_print
 import pygraph.common as common
 from pygraph.dataeditor import DataEditor
 from pygraph.hardcopy import Hardcopy
@@ -91,6 +92,10 @@ class MainWindow(QMainWindow):
         common.settings["DataEditor/Size"] = qset.value("DataEditor/Size",
                 QVariant(common.settings["DataEditor/Size"])).toSize()
 
+        common.settings["PyGraph/Debug"] = qset.value(
+            "PyGraph/Debug", QVariant(QString(str(
+                common.settings["PyGraph/Debug"])))).toString() == 'True'
+
         common.settings["Plot/legendTextLength"] = qset.value(
             "Plot/legendTextLength", QVariant(common.settings[
                 "Plot/legendTextLength"])).toInt()[0]
@@ -135,6 +140,8 @@ class MainWindow(QMainWindow):
                 "Ctrl+L", None, "Maximum length of the items in the legend")
         FPSEditAction = self.createAction("&FPS...", self.FPSEditSlot,
                 "Ctrl+F", None, "Set the number of frames per second")
+        reloadDataAction = self.createAction("&Reload", self.reloadDataSlot,
+                "Ctrl+R", "file-view-refresh", "Reload data")
 
         # Controls actions
         self.playAction = self.createAction("&Play", self.playSlot,
@@ -175,6 +182,7 @@ class MainWindow(QMainWindow):
         editMenu.addAction(plotSettingsAction)
         editMenu.addAction(legendEditAction)
         editMenu.addAction(FPSEditAction)
+        editMenu.addAction(reloadDataAction)
 
         # Play menu
         playMenu = self.menuBar().addMenu("&Play")
@@ -238,41 +246,41 @@ class MainWindow(QMainWindow):
         while len(args) > 0:
             arg = args.pop(0)
             if arg == '{':
-                print("{")
+                debug_print("{")
                 if '}' not in args:
-                    print("Unmatched '{' in command line!")
+                    debug_print("Unmatched '{' in command line!")
                     exit(1)
                 groupMode = True
                 if currKey is None:
                     currKey = arg = args.pop(0)
-                    print("A " + arg)
+                    debug_print("A " + arg)
                     self.datasets[arg] = DataSet(arg,
                             DataSetType.guess_from_name(arg), options.reflevel)
                     self.datasets[arg].add_datafile(arg)
                 elif not mapMode:
-                    print("Something went wrong while parsing the command line")
+                    debug_print("Something went wrong while parsing the command line")
                     exit(1)
             elif arg == '@':
                 if groupMode:
-                    print("'@' inside a '{' '}' block!")
+                    debug_print("'@' inside a '{' '}' block!")
                     exit(1)
                 mapMode   = True
             elif arg == '}':
-                print("}")
+                debug_print("}")
                 groupMode = False
                 mapMode   = False
             else:
                 if mapMode:
-                    print("M " + arg)
+                    debug_print("M " + arg)
                     self.datasets[currKey].add_mapfile(arg)
                     if not groupMode:
                         currKey = None
                         mapMode = False
                 elif groupMode:
-                    print("A " + arg)
+                    debug_print("A " + arg)
                     self.datasets[currKey].add_datafile(arg)
                 else:
-                    print("A " + arg)
+                    debug_print("A " + arg)
                     currKey = arg
                     self.datasets[arg] = DataSet(arg,
                             DataSetType.guess_from_name(arg), options.reflevel)
@@ -291,6 +299,8 @@ class MainWindow(QMainWindow):
                 QVariant(common.settings["DataEditor/Position"]))
         qset.setValue("DataEditor/Size",
                 QVariant(common.settings["DataEditor/Size"]))
+        qset.setValue("PyGraph/Debug",
+                str(common.settings["PyGraph/Debug"]))
         qset.setValue("Plot/legendTextLength",
                 QVariant(common.settings["Plot/legendTextLength"]))
         qset.setValue("Plot/xGridEnabled",
@@ -515,6 +525,21 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "No data loaded",
                 "You have to import at least one dataset before you can "
                                 "edit data.")
+
+    def reloadDataSlot(self):
+        """
+        Reloads the data from file
+        """
+        for dset in self.datasets.itervalues():
+            dset.read_data()
+        self.updateData()
+        self.setLimits()
+
+        old_time = self.time
+        self.setTimer()
+        self.time = old_time
+
+        self.plotFrame()
 
     def updateDataSlot(self):
         """

@@ -11,6 +11,7 @@ settings = {
         "Animation/Smooth": False,
         "DataEditor/Position": QPoint(0,0),
         "DataEditor/Size": QSize(500,300),
+        "PyGraph/Debug": True,
         "Plot/legendFontSize": 8,
         "Plot/legendTextLength": 30,
         "Plot/font": "Monospace",
@@ -62,3 +63,7 @@ formats = {
         "PyGraph HDF5 (*.h5)": "pygraph",
         "xGraph and yGraph formats (*.xg *.yg)": "xg"
         }
+
+def debug_print(msg):
+    if settings["PyGraph/Debug"]:
+        print(msg)

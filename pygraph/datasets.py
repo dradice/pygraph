@@ -1,5 +1,6 @@
 from copy import deepcopy
 from numpy import *
+from pygraph.common import debug_print
 import pygraph.common as common
 import scidata.carpet.ascii as asc
 import scidata.carpet.hdf5 as h5
@@ -76,6 +77,8 @@ class DataSet:
         """
         Reads a single file and returns a scidata.monodataset
         """
+        debug_print("R " + fname)
+
         # There is only one 0D dataformat supported
         if self.dset_type == DataSetType.D0:
             return asc.parse_scalar_file(fname)
