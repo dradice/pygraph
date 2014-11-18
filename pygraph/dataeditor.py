@@ -168,8 +168,8 @@ class DataEditor(QDialog):
     def update_Ui(self, current, previous):
         """Updates the GUI"""
         self.previous = previous
-        self.xTransf.setText(current.data[0])
-        self.yTransf.setText(current.data[1])
+        self.xTransf.setText(current.transf[0])
+        self.yTransf.setText(current.transf[1])
         self.xTransfValidate()
         self.yTransfValidate()
 
