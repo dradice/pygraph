@@ -251,15 +251,12 @@ class MainWindow(QMainWindow):
                     debug_print("Unmatched '{' in command line!")
                     exit(1)
                 groupMode = True
-                if currKey is None:
+                if not mapMode:
                     currKey = arg = args.pop(0)
                     debug_print("A " + arg)
                     self.datasets[arg] = DataSet(arg,
                             DataSetType.guess_from_name(arg), options.reflevel)
                     self.datasets[arg].add_datafile(arg)
-                elif not mapMode:
-                    debug_print("Something went wrong while parsing the command line")
-                    exit(1)
             elif arg == '@':
                 if groupMode:
                     debug_print("'@' inside a '{' '}' block!")

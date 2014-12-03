@@ -11,7 +11,7 @@ settings = {
         "Animation/Smooth": False,
         "DataEditor/Position": QPoint(0,0),
         "DataEditor/Size": QSize(500,300),
-        "PyGraph/Debug": True,
+        "PyGraph/Debug": False,
         "Plot/legendFontSize": 8,
         "Plot/legendTextLength": 30,
         "Plot/font": "Monospace",
