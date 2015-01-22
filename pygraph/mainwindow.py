@@ -68,11 +68,11 @@ class MainWindow(QMainWindow):
             except FileTypeError as e:
                 QMessageBox.critical(self, "I/O Error",
                         "Could not read file " + str(e))
-                exit(1)
+                raise
             except:
                 QMessageBox.critical(self, "I/O Error",
                         "Coud not read dataset " + key)
-                exit(1)
+                raise
         self.updateData()
 
         # Restore settings
@@ -354,7 +354,10 @@ class MainWindow(QMainWindow):
         # Computes timestep
         self.timestep = sys.float_info.max
         for dset in self.datasets.itervalues():
-            dt = np.diff(np.array(dset.data.time)).min()
+            if len(dset.data.time) > 1:
+                dt = np.diff(np.array(dset.data.time)).min()
+            else:
+                dt = 1.0
             self.timestep = min(self.timestep, dt)
         int_n_timesteps = math.ceil((self.tfinal - self.tinit)/self.timestep)
         if int_n_timesteps > 0:
