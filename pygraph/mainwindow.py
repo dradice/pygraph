@@ -236,6 +236,23 @@ class MainWindow(QMainWindow):
 
         self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
 
+    def parseColNumber(self, args, groupMode):
+        if groupMode:
+            for arg in args:
+                if arg == '}':
+                    return None
+                elif arg[0] == '^':
+                    return int(arg[1:])
+            debug_print("Unmatched '{' in command line!")
+            exit(1)
+        else:
+            try:
+                if args[0][0] == '^':
+                    return int(args[0][1:])
+            except IndexError:
+                pass
+            return None
+
     def parseCLI(self, args, options):
         """
         Parse the command line options
@@ -253,10 +270,13 @@ class MainWindow(QMainWindow):
                 groupMode = True
                 if not mapMode:
                     currKey = arg = args.pop(0)
+                    col = self.parseColNumber(args, groupMode)
+                    if col is not None:
+                        currKey = arg + "^" + str(col)
                     debug_print("A " + arg)
-                    self.datasets[arg] = DataSet(arg,
+                    self.datasets[currKey] = DataSet(currKey,
                             DataSetType.guess_from_name(arg), options.reflevel)
-                    self.datasets[arg].add_datafile(arg)
+                    self.datasets[currKey].add_datafile(arg, None, col)
             elif arg == '@':
                 if groupMode:
                     debug_print("'@' inside a '{' '}' block!")
@@ -266,22 +286,29 @@ class MainWindow(QMainWindow):
                 debug_print("}")
                 groupMode = False
                 mapMode   = False
+            elif arg[0] == '^':
+                pass
             else:
                 if mapMode:
                     debug_print("M " + arg)
-                    self.datasets[currKey].add_mapfile(arg)
+                    col = self.parseColNumber(args, groupMode)
+                    self.datasets[currKey].add_mapfile(arg, None, col)
                     if not groupMode:
                         currKey = None
                         mapMode = False
                 elif groupMode:
                     debug_print("A " + arg)
-                    self.datasets[currKey].add_datafile(arg)
+                    col = self.parseColNumber(args, groupMode)
+                    self.datasets[currKey].add_datafile(arg, None, col)
                 else:
                     debug_print("A " + arg)
                     currKey = arg
-                    self.datasets[arg] = DataSet(arg,
+                    col = self.parseColNumber(args, groupMode)
+                    if col is not None:
+                        currKey = arg + "^" + str(col)
+                    self.datasets[currKey] = DataSet(currKey,
                             DataSetType.guess_from_name(arg), options.reflevel)
-                    self.datasets[arg].add_datafile(arg)
+                    self.datasets[currKey].add_datafile(arg, None, col)
 
     def closeEvent(self, event):
         """

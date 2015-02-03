@@ -6,6 +6,7 @@ viewing 1D data files.
 
 pygraph is a PyQt re-implementation of xGraph and yGraph:
 
+
 Requirements
 ------------
 
@@ -16,6 +17,7 @@ Requirements
 * >= qt-4.4
 * >= qwt-5.2
 * <  qwt-6.0
+
 
 Installation
 ------------
@@ -29,6 +31,7 @@ $ cd pygraph
 
 $ sudo python setup.py install
 
+
 Mouse shortcuts
 ---------------
 
@@ -36,6 +39,7 @@ Mouse shortcuts
 * Right click:              previous zoom settings
 * Shift + Right click:      next zoom settings
 * Middle click:             original zoom settings
+
 
 Data transformations
 --------------------
@@ -55,6 +59,7 @@ Example: computing the derivative of the data
 
   y' = D(y)/D(x)
 
+
 Command Line Interface
 ----------------------
 
@@ -65,6 +70,14 @@ $ pygraph
 It is possible to specify a list of files to open with
 
 $ pygraph file1 file2 ...
+
+One can specify which data column to read from an ASCII file with the syntax
+
+$ pygraph file.xg ^5
+
+If the column is not specified pygraph will use a reasonable default. Note that
+the column number for the coordinates is currently hard coded for each datafile
+format.
 
 In the case a dataset is split over different files it is possible
 to make pygraph automatically merge them, by simply enclosing the relevant
@@ -81,13 +94,16 @@ $ pygraph file1 @ file2
 
 this will plot file1 using file2 y-data as its x-data.
 
-You can also use {} and @ together, as in
+You can also use {}, ^ and @ together, as in
 
-$ pygraph { file1 file2 } @ { file3 file4 }
+$ pygraph { file1 ^2 file2 ^3 } @ { file3 file4 ^4 }
+
+Note that in the second group the 4th column is used for both files.
 
 For more informations see
 
 $ pygraph --help
+
 
 Pygraph data format (.pyg)
 --------------------------
@@ -107,6 +123,7 @@ Parts of this code has been adapted from the GPLed examples distributed
 alongside the book "Summerfield - Rapid GUI Programming with Python and Qt".
 
 The icons are from the Tango project.
+
 
 References
 ----------

@@ -7,9 +7,7 @@ warnings.filterwarnings("ignore", r".*converting a masked element to nan.*")
 
 import sys
 
-# the following two lines are needed to execute on Ubuntu
-# I tried to check wether the append is permanent (i.e. the modify 
-# persists after execution) and it seems it isnt'.
+# to run from the current folder
 import os
 sys.path.append(os.getcwd())
 
@@ -21,7 +19,7 @@ app = QApplication(sys.argv)
 app.setOrganizationName("pygraph")
 app.setApplicationName("pygraph")
 
-usage = "%prog [options] [{] data0 [}] [@] [data1 [data2 [...]]]"
+usage = "%prog [options] [{] data0 [^N] [}] [@] [data1 [^N] [data2 [...]]]"
 parser = OptionParser(usage)
 parser.add_option("-l", "--log", action="store_true", default=False,
         dest="logscale", help="Use logaritmic scale")

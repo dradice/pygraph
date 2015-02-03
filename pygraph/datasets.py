@@ -33,8 +33,8 @@ class DataSet:
     * name            : DataSet name
     * dset_type       : type of dataset (DataSetType.D0 or DataSetType.D1)
     * data            : transformed data (could be a pointer to rawdata)
-    * std_data_files  : list of tuples: (filename, type), type could be None
-    * map_data_files  : list of typles: (filename, type), type could be None
+    * std_data_files  : list of tuples: (filename, type, col), type/col could be None
+    * map_data_files  : list of typles: (filename, type, col), type/col could be None
     * rawdata         : scidata.monodataset with the raw data
     * reflevel        : read a particular refinement level of the data (optional)
     * transform       : data transformation
@@ -48,21 +48,22 @@ class DataSet:
         self.map_data_files = None
         self.rawdata        = None
         self.reflevel       = reflevel
+        self.index          = 0
         self.transform      = ('x', 'y')     # Identity transformation
 
-    def add_datafile(self, fname, ftype=None):
+    def add_datafile(self, fname, ftype=None, col=None):
         """
         Add another datafile to the list of files to read
         """
-        self.std_data_files.append((fname, ftype))
+        self.std_data_files.append((fname, ftype, col))
 
-    def add_mapfile(self, fname, ftype=None):
+    def add_mapfile(self, fname, ftype=None, col=None):
         """
         Add another map datafile to the list of map datafiles
         """
         if self.map_data_files is None:
             self.map_data_files = []
-        self.map_data_files.append((fname, ftype))
+        self.map_data_files.append((fname, ftype, col))
 
     def get_frame(self, time):
         """
@@ -73,7 +74,7 @@ class DataSet:
         else:
             return self.data.find_frame(time)
 
-    def read_file(self, fname, ftype=None):
+    def read_file(self, fname, ftype=None, col=None):
         """
         Reads a single file and returns a scidata.monodataset
         """
@@ -105,11 +106,11 @@ class DataSet:
 
         # Read the file
         if ftype == "xg":
-            return xg.parsefile(fname)
+            return xg.parsefile(fname, col)
         elif ftype == "pygraph":
             return pyg.parsefile(fname)
         elif ftype == "CarpetIOASCII":
-            return asc.parse_1D_file(fname, self.reflevel)
+            return asc.parse_1D_file(fname, self.reflevel, col)
         elif ftype == "h5":
             return h5.parse_1D_file(fname, self.reflevel)
         else:
@@ -123,7 +124,8 @@ class DataSet:
         NOTE: D0 datasets can only read 0D data
               D1 datasets can only read 1D data
         """
-        L   = [self.read_file(fname, ftype) for fname, ftype in data_files]
+        L   = [self.read_file(fname, ftype, col)
+                for fname, ftype, col in data_files]
         if self.dset_type == DataSetType.D0:
             frame = L[0].frame(0)
             for f in L[1:]:
