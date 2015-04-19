@@ -112,7 +112,7 @@ class DataSet:
         elif ftype == "CarpetIOASCII":
             return asc.parse_1D_file(fname, self.reflevel, col)
         elif ftype == "h5":
-            return h5.parse_1D_file(fname, self.reflevel)
+            return h5.parse_1D_file(fname, self.reflevel, float64)
         else:
             raise FileTypeError(fname)
 
