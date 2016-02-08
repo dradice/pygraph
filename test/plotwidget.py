@@ -3,7 +3,6 @@
 import sys
 
 from PyQt4.QtGui import QApplication
-from PyQt4.Qwt5 import *
 from pygraph.plotwidget import PlotWidget
 
 import numpy as np
@@ -22,7 +21,8 @@ y2 = x2**3
 app = QApplication(sys.argv)
 plot = PlotWidget()
 
-plot.plotFrame({"Uno":wrapper(x1, y1), "Due": wrapper(x2, y2)}, "t = 0.5")
+datasets = {"One":wrapper(x1, y1), "Two": wrapper(x2, y2)}
+plot.plotFrame(datasets.keys(), datasets, "t = 0.5")
 
 plot.show()
 app.exec_()
