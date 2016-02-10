@@ -13,8 +13,10 @@ $MAKEICNS \
     -out pygraph.icns
 
 $PYINSTALLER \
+    --clean \
     --hidden-import=h5py.h5ac \
     --icon=pygraph.icns \
+    --runtime-hook=../../rthook_pyqt4.py \
     --windowed \
     --onefile \
     --strip \

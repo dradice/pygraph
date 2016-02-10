@@ -454,7 +454,7 @@ class MainWindow(QMainWindow):
         dialog.setFileMode(QFileDialog.ExistingFile)
         if dialog.exec_():
             files = dialog.selectedFiles()
-            fileName  = str(files.first())
+            fileName  = str(files[0])
             fileFilter = str(dialog.selectedNameFilter())
             fileType = common.formats[fileFilter]
             self.datasets[fileName] = DataSet(fileName,
@@ -491,7 +491,7 @@ class MainWindow(QMainWindow):
 
         if dialog.exec_():
             files = dialog.selectedFiles()
-            fileName = str(files.first())
+            fileName = str(files[0])
             extension = dialog.selectedFilter()
 
             if extension == "Gnuplot ASCII .dat (*.dat)":
