@@ -1,8 +1,6 @@
 #ifndef PYGRAPH_H
 #define PYGRAPH_H
 
-#include <hdf5.h>
-
 /*
  * pygraph native binary data format: reference implementation
  */

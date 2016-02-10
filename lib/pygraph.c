@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <hdf5.h>
+
 static int const pyg_version = 1;
 
 int pygwrite(
@@ -30,7 +32,7 @@ int pygwrite(
         H5Sclose(dspace_id);
     }
     ierr |= file_id < 0;
-    hid_t group_id = H5Gopen(file_id, "/", H5P_DEFAULT);
+    hid_t group_id = H5Gopen2(file_id, "/", H5P_DEFAULT);
     ierr |= group_id < 0;
 
     char dname[BUFSIZ];
