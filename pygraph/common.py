@@ -11,14 +11,19 @@ settings = {
         "Animation/Smooth": False,
         "DataEditor/Position": QPoint(0,0),
         "DataEditor/Size": QSize(500,300),
+        "MainWindow/Position": QPoint(0,0),
+        "MainWindow/Size": QSize(600,400),
         "PyGraph/Debug": False,
+        "Plot/font": "Monospace",
         "Plot/legendFontSize": 8,
         "Plot/legendTextLength": 30,
-        "Plot/font": "Monospace",
+        "Plot/maxFramesForPlotAll": 100,
+        "Plot/maxZoomFactor": 50.0,
         "Plot/titleFontSize": 10,
         "Plot/xAxisTitle": "x",
         "Plot/xGridEnabled": False,
         "Plot/xLogScale": False,
+        "Plot/xLogScaleMin": sys.float_info.epsilon,
         "Plot/xMin": 0,
         "Plot/xMax": 1,
         "Plot/yAxisTitle": "y",
@@ -63,6 +68,8 @@ formats = {
         "PyGraph HDF5 (*.h5)": "pygraph",
         "xGraph and yGraph formats (*.xg *.yg)": "xg"
         }
+
+status = ""
 
 def debug_print(msg):
     if settings["PyGraph/Debug"]:

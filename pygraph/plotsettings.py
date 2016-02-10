@@ -97,7 +97,7 @@ class PlotSettings(QDialog):
                 "Plot/yGridEnabled":self.yGridCheck.isChecked()
                   }
             settings.update(plotSettings)
-            self.emit(SIGNAL("changed"))
+            self.emit(SIGNAL("changedPlotSettings"))
         except ValueError:
             QMessageBox.critical(self, "Value Error",
                                "There were some errors reading "

@@ -3,7 +3,7 @@ from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
                         QAbstractItemView, QLabel, QLineEdit, \
                         QToolButton, QIcon, QPushButton, \
                         QHBoxLayout, QGridLayout, QMessageBox
-from PyQt4.QtCore import QString, SIGNAL
+from PyQt4.QtCore import SIGNAL
 from numpy import *
 
 import pygraph.common as common
@@ -27,7 +27,7 @@ class DataEditor(QDialog):
         self.clean    = []
         self.previous = None
 
-        self.setWindowTitle(QString("Data Editor"))
+        self.setWindowTitle(("Data Editor"))
         self.resize(common.settings["DataEditor/Size"])
         self.move(common.settings["DataEditor/Position"])
 
@@ -108,7 +108,7 @@ class DataEditor(QDialog):
                 item = self.dataList.item(idx)
                 self.datasets[item.name].transform = item.transf
 
-            self.emit(SIGNAL("changed"))
+            self.emit(SIGNAL("changedPlotData"))
         else:
             QMessageBox.critical(self, "Parsing Errors",
                               "There were parsing errors reading the "

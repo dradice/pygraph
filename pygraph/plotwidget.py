@@ -1,9 +1,6 @@
-from PyQt4.Qwt5.qplt import QwtPlot, QColor, QwtPlotGrid, QwtLegend, Qwt, \
-                            QFont, QwtLinearScaleEngine, QwtText, QPen, \
-                            DotLine, QwtPlotZoomer, QwtPicker, Qt,\
-                            QwtEventPattern, QwtPlotPicker, SIGNAL, \
-                            QRectF, QwtPlotCurve, QBrush, QwtSymbol, \
-                            QSize, QwtLog10ScaleEngine
+from qwt import *
+from PyQt4.QtGui import QBrush, QColor, QFont, QPen, QRubberBand
+from PyQt4.QtCore import QEvent, QObject, QPoint, QRect, QSize, QSizeF, Qt, SIGNAL
 
 import pygraph.common as common
 
@@ -15,19 +12,70 @@ def shortText(text, length):
     else:
         return text[0:length/2] + "..." + text[-length/2:]
 
+class ZoomStack(object):
+    """
+        Helper class for zooming on parts of the plot
+    """
+    def __init__(self):
+        """
+        parent : PlotWidget
+        """
+        self.base = (0, 1, 0, 1)
+        self.reset()
+    def reset(self):
+        """
+        reset the zoom tool
+        """
+        self.zoom_stack = []
+
+    def getZoomBase(self):
+        return self.base
+    def setZoomBase(self, rect):
+        """
+        Set the base zoom
+        """
+        self.base = rect
+
+    def addToStack(self, rect):
+        """
+        Add selection to the zoom stack
+        """
+        self.zoom_stack.append(rect)
+
+    def getCurrZoom(self):
+        """
+        Get current zoom level
+        """
+        try:
+            return self.zoom_stack[-1]
+        except IndexError:
+            return self.base
+    def getPrevZoom(self):
+        """
+        Get previous zoom level
+        """
+        try:
+            self.zoom_stack.pop()
+            return self.zoom_stack[-1]
+        except IndexError:
+            return self.base
+
+
 class PlotWidget(QwtPlot):
     """
         a class that represents a plot
 
-        acurves : dictionary of QwtPlotCurves {datafile: curve}
-                  used for the show-all feature
-        clist   : list of colors
-        curves  : dictionary of QwtPlotCurves {datafile: curve}
-        grid    : QwtPlotGrid object
-        hidden  : dictionary of Bools {datafile: hidden}
-        litems  : legend items
-        showall : boolean
-        zoomer  : QwtPlotZoom object
+        acurves     : dictionary of QwtPlotCurves {datafile: curve}
+                      used for the show-all feature
+        clist       : list of colors
+        curves      : dictionary of QwtPlotCurves {datafile: curve}
+        grid        : QwtPlotGrid object
+        hidden      : dictionary of Bools {datafile: hidden}
+        litems      : legend items
+        showall     : boolean
+        origin      : origin of the rectangular selection
+        zstack      : zoom stack
+        rubber_band : QRubberBand
     """
     def __init__(self, parent=None):
         super(PlotWidget, self).__init__(parent)
@@ -45,91 +93,53 @@ class PlotWidget(QwtPlot):
         self.grid = QwtPlotGrid()
         self.grid.attach(self)
 
-        # Using a name in legend:
-        # all the work was adding "key" as an argument of QwtPlotCurve()
-        # constructor at line ~128
-        self.legend = QwtLegend()
-        self.legend.setItemMode(Qwt.QwtLegend.CheckableItem)
-        self.insertLegend(self.legend, Qwt.QwtPlot.RightLegend)
+        legend = QwtLegend()
+        legend.setDefaultItemMode(QwtLegendData.Checkable)
+        self.insertLegend(legend, pos=QwtPlot.RightLegend)
 
-        self.applySettings()
-
-        self.zoomer = QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yLeft,
-                QwtPicker.DragSelection, QwtPicker.AlwaysOff, self.canvas())
-        self.zoomer.setRubberBandPen(QPen(Qt.green))
-
-        # Left click  : zoom
-        # Right click : previous zoom settings
-        # Shift + Right click : next zoom settings
-        # Middle click : first zoom settings
-        pattern = [
-            QwtEventPattern.MousePattern(Qt.LeftButton, Qt.NoModifier),
-            QwtEventPattern.MousePattern(Qt.MidButton, Qt.NoModifier),
-            QwtEventPattern.MousePattern(Qt.RightButton, Qt.NoModifier),
-            QwtEventPattern.MousePattern(Qt.LeftButton, Qt.ShiftModifier),
-            QwtEventPattern.MousePattern(Qt.MidButton, Qt.ShiftModifier),
-            QwtEventPattern.MousePattern(Qt.RightButton, Qt.ShiftModifier),
-            ]
-        self.zoomer.setMousePattern(pattern)
-
-        picker = QwtPlotPicker(QwtPlot.xBottom, QwtPlot.yLeft,
-                QwtPicker.NoSelection, QwtPlotPicker.CrossRubberBand,
-                QwtPicker.AlwaysOn, self.canvas())
-        picker.setTrackerPen(QPen(Qt.red))
-        picker.setTrackerFont(QFont(common.settings["Plot/font"]))
+        self.zstack = ZoomStack()
+        self.origin = QPoint()
+        self.rubber_band = QRubberBand(QRubberBand.Rectangle, self)
 
         self.clist = deepcopy(common.colors)
 
-        self.connect(self,
-                     SIGNAL("legendChecked(QwtPlotItem*, bool)"),
-                     self.toggleVisibility)
+        legend.checked.connect(self.toggleVisibility)
 
-        self.connect(self.zoomer, SIGNAL("zoomed(const QwtDoubleRect &)"),
-                self.updateSize)
-
+        self.setMouseTracking(True)
+        self.canvas().setMouseTracking(True)
+        self.applySettings()
 
     def applySettings(self):
         """
             this function applies settings to the plot
-            options expected:
-                (float) Plot/xMin, Plot/xMax, Plot/yMin, Plot/yMax: canvas edges
-                (string) Plot/xAxisTitle, Plot/yAxisTitle:  axes titles
-                (bool) Plot/xMinEnabled, Plot/yMinEnabled:  enable minor grids
-
         """
         self.setAxisFont(QwtPlot.xBottom, QFont(common.settings["Plot/font"]))
         self.setAxisFont(QwtPlot.yLeft, QFont(common.settings["Plot/font"]))
 
         if common.settings["Plot/xLogScale"]:
-            self.setAxisScaleEngine(QwtPlot.xBottom, QwtLog10ScaleEngine())
+            self.setAxisScaleEngine(QwtPlot.xBottom, QwtLogScaleEngine())
         else:
             self.setAxisScaleEngine(QwtPlot.xBottom, QwtLinearScaleEngine())
 
         if common.settings["Plot/yLogScale"]:
-            self.setAxisScaleEngine(QwtPlot.yLeft, QwtLog10ScaleEngine())
+            self.setAxisScaleEngine(QwtPlot.yLeft, QwtLogScaleEngine())
         else:
             self.setAxisScaleEngine(QwtPlot.yLeft, QwtLinearScaleEngine())
 
         interval_x = self.axisScaleDiv(QwtPlot.xBottom)
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
-
-        try:
- 	    xmin_old = interval_x.lowerBound()
-            xmax_old = interval_x.upperBound()
-            ymin_old = interval_y.lowerBound()
-            ymax_old = interval_y.upperBound()
-        except AttributeError:
-            xmin_old = interval_x.lBound()
-            xmax_old = interval_x.hBound()
-            ymin_old = interval_x.lBound()
-            ymax_old = interval_x.hBound()
+        xmin_old = interval_x.lowerBound()
+        xmax_old = interval_x.upperBound()
+        ymin_old = interval_y.lowerBound()
+        ymax_old = interval_y.upperBound()
 
         xmin = common.settings["Plot/xMin"]
         xmax = common.settings["Plot/xMax"]
-
         ymin = common.settings["Plot/yMin"]
         ymax = common.settings["Plot/yMax"]
 
+        if common.settings["Plot/xLogScale"]:
+            xmin = max(ymin, common.settings["Plot/xLogScaleMin"])
         if common.settings["Plot/yLogScale"]:
             ymin = max(ymin, common.settings["Plot/yLogScaleMin"])
 
@@ -147,66 +157,115 @@ class PlotWidget(QwtPlot):
         self.grid.enableX(common.settings["Plot/xGridEnabled"])
         self.grid.enableY(common.settings["Plot/yGridEnabled"])
 
-        # following option can't be modified, for now
-        self.grid.setPen(QPen(DotLine))
+        self.grid.setPen(QPen(Qt.DotLine))
 
         self.replot()
 
-        # Add the new zoom to the zoomstack
-        # this should not be executed when this method is called by __init__
-        # i.e. when self.zoomer is None
-        if self.zoomer is not None:
-            if xmin_old != xmin or xmax_old != xmax or\
-                ymin_old != ymin or ymax_old != ymax:
-                zoomStack = self.zoomer.zoomStack()
-                zoomStack.append(QRectF(xmin, ymin, xmax-xmin, ymax-ymin))
-                self.zoomer.setZoomStack(zoomStack)
-            # this sets the current axis as zoom base
-            self.zoomer.setZoomBase(True)
+        self.zstack.reset()
+        self.zstack.setZoomBase((xmin, xmax, ymin, ymax))
 
-    def plotAll(self, keys, datasets):
+    def getCoordinates(self, pos):
+        """
+            Computes the coordinates of a given point
+
+            * pos: QPoint
+        """
+        return (self.invTransform(QwtPlot.xBottom, pos.x() - self.canvas().x()),
+                self.invTransform(QwtPlot.yLeft,   pos.y() - self.canvas().y()))
+
+    def mousePressEvent(self, event):
+        """
+            Left click event: start zoom selection
+        """
+        if event.button() == Qt.LeftButton:
+            self.origin = event.pos()
+            self.rubber_band.setGeometry(QRect(self.origin, QSize()))
+            self.rubber_band.show()
+        QwtPlot.mousePressEvent(self, event)
+    def mouseMoveEvent(self, event):
+        """
+            Mouse movement
+        """
+        if self.rubber_band.isVisible():
+            self.rubber_band.setGeometry(QRect(self.origin, event.pos()).normalized())
+        common.status = "{:g} {:g}".format(*self.getCoordinates(event.pos()))
+        self.emit(SIGNAL("changedStatus"))
+        QwtPlot.mouseMoveEvent(self, event)
+    def mouseReleaseEvent(self, event):
+        """
+            Mouse release event
+            Left click: finish zoom selection
+            Right click: previous zoom level
+        """
+        if event.button() == Qt.LeftButton:
+            if self.rubber_band.isVisible():
+                x0, y0 = self.getCoordinates(self.origin)
+                x1, y1 = self.getCoordinates(event.pos())
+                rect_old = self.zstack.getCurrZoom()
+                rect_new = tuple(sorted([x0, x1]) + sorted([y0, y1]))
+
+                # Filter out spurious clicks
+                F = common.settings["Plot/maxZoomFactor"]
+                if (rect_new[1] - rect_new[0]) > (1./F) * (rect_old[1] - rect_old[0]) and \
+                   (rect_new[3] - rect_new[2]) > (1./F) * (rect_old[3] - rect_old[2]):
+                    self.zstack.addToStack(rect_new)
+                    self.setAxisScale(QwtPlot.xBottom, rect_new[0], rect_new[1])
+                    self.setAxisScale(QwtPlot.yLeft,   rect_new[2], rect_new[3])
+                self.origin = QPoint()
+                self.rubber_band.hide()
+        elif event.button() == Qt.RightButton:
+            rect = self.zstack.getPrevZoom()
+            self.setAxisScale(QwtPlot.xBottom, rect[0], rect[1])
+            self.setAxisScale(QwtPlot.yLeft,   rect[2], rect[3])
+        QwtPlot.mouseReleaseEvent(self, event)
+
+    def plotAll(self, datasets):
         """this function plots all the frames at once"""
         clist = deepcopy(common.colors)
         self.acurves = {}
-        for key in keys:
+        for key in datasets.iterkeys():
             dataset = datasets[key]
             self.acurves[key] = []
             mycolor = clist.pop(0)
             basecolor = QColor(mycolor).toHsv()
-            for i in xrange(dataset.nframes):
-                cf = dataset.frame(i)
+            nframe = common.settings["Plot/maxFramesForPlotAll"]
+            if nframe < dataset.nframes:
+                fac = dataset.nframes/nframe
+            else:
+                fac = 1
+                nframe = dataset.nframes
+            for i in xrange(nframe):
+                cf = dataset.frame(i*fac)
                 currentColor = QColor()
                 currentColor.setHsv(basecolor.hue(), basecolor.saturation(),
-                        basecolor.value() * i / dataset.nframes,
+                        basecolor.value() * float(i)/float(nframe),
                         basecolor.alpha())
                 qsymbol = QwtSymbol(QwtSymbol.Rect,
                         QBrush(QColor(currentColor)),
-                        QPen(QColor(currentColor)), QSize(3, 3))
+                        QPen(QColor(currentColor)), QSizeF(3, 3))
                 qcurve = QwtPlotCurve()
-                qcurve.setData(cf.data_x, cf.data_y)
-                qcurve.attach(self)
-                qcurve.setPen(QPen(QBrush(QColor(currentColor)), 1))
                 qcurve.setSymbol(qsymbol)
-                self.legend.remove(qcurve)
+                qcurve.setPen(QPen(QBrush(currentColor), 1))
+                qcurve.setData(cf.data_x, cf.data_y)
+                qcurve.setItemAttribute(QwtPlotItem.Legend, False)
+                qcurve.attach(self)
 
                 qcurve.setVisible(not self.hidden[key])
-                self.legend.remove(qcurve)
 
                 self.acurves[key].append(qcurve)
 
         self.showall = True
         self.replot()
 
-    def plotFrame(self, keys, datasets, title=None):
+    def plotFrame(self, datasets, title=None):
         """
             this function plots a single frame from the 'data' dictionary
-            data has the form {'name':(xp, yp)} where 'name' is the curve's
+            data has the form {'name':(xp, yp)}L where 'name' is the curve's
             name in the legend and (xp, yp) is a tuple of numpy arrays
             representing the coordinates of the points in the current frame
-
             WARNING: the 'name' entries have to be unique!!!
         """
-        for key in keys:
+        for key in datasets.iterkeys():
             rawdata = datasets[key]
             if not self.curves.has_key(key):
                 ltext = shortText(key, common.settings["Plot/legendTextLength"])
@@ -214,7 +273,6 @@ class PlotWidget(QwtPlot):
                 ltext.setFont(QFont(common.settings["Plot/font"],
                     common.settings["Plot/legendFontSize"]))
                 self.curves[key] = QwtPlotCurve(ltext)
-                self.curves[key].attach(self)
 
                 try:
                     mycolor = self.clist.pop(0)
@@ -224,20 +282,18 @@ class PlotWidget(QwtPlot):
                 self.curves[key].setPen(QPen(QBrush(QColor(mycolor)), 1))
 
                 qsymbol = QwtSymbol(QwtSymbol.Rect, QBrush(QColor(mycolor)),
-                        QPen(QColor(mycolor)), QSize(3, 3))
+                        QPen(QColor(mycolor)), QSizeF(3, 3))
                 self.curves[key].setSymbol(qsymbol)
 
+                self.curves[key].attach(self)
                 self.hidden[key] = False
-                self.litems[key] = self.legend.find(self.curves[key])
+
+                self.litems[key] = self.legend().legendWidget(self.curves[key])
+                self.litems[key].setChecked(True)
             else:
                 self.hidden[key] = not self.curves[key].isVisible()
 
             self.curves[key].setData(rawdata.data_x, rawdata.data_y)
-
-        for key in keys:
-            litem = self.litems[key]
-            litem.setChecked(not self.hidden[key])
-            litem.setIdentifierWidth(24)
 
         if title is not None:
             tstring = QwtText(title)
@@ -247,6 +303,15 @@ class PlotWidget(QwtPlot):
 
         self.replot()
 
+    def resetZoom(self):
+        """
+            Reset the zoom level of the plot
+        """
+        rect = self.zstack.getZoomBase()
+        self.setAxisScale(QwtPlot.xBottom, rect[0], rect[1])
+        self.setAxisScale(QwtPlot.yLeft,   rect[2], rect[3])
+        self.zstack.reset()
+    resetPlot = resetZoom
 
     def resetLegend(self):
         """
@@ -259,14 +324,6 @@ class PlotWidget(QwtPlot):
                     common.settings["Plot/legendFontSize"]))
             item.setTitle(ltext)
         self.updateLayout()
-
-
-    def resetZoomer(self):
-        """
-            Reset the zoomer stack
-        """
-        self.zoomer.setZoomBase(True)
-
 
     def toggleVisibility(self, plotItem, status):
         """
@@ -282,9 +339,7 @@ class PlotWidget(QwtPlot):
         if self.showall:
             for c in self.acurves[mykey]:
                 c.setVisible(status)
-                self.legend.remove(c)
         self.replot()
-
 
     def unPlotAll(self):
         """docstring for unPlotAll"""
@@ -293,23 +348,3 @@ class PlotWidget(QwtPlot):
                 i.detach()
         self.showall = False
         self.replot()
-
-
-    def updateSize(self):
-        """
-            Update the plot ranges after a zoom
-        """
-        interval_x = self.axisScaleDiv(QwtPlot.xBottom)
-        interval_y = self.axisScaleDiv(QwtPlot.yLeft)
-
-        try:
-            common.settings["Plot/xMin"] = interval_x.lowerBound()
-            common.settings["Plot/xMax"] = interval_x.upperBound()
-            common.settings["Plot/yMin"] = interval_y.lowerBound()
-            common.settings["Plot/yMax"] = interval_y.upperBound()
-        except AttributeError:
-            common.settings["Plot/xMin"] = interval_x.lBound()
-            common.settings["Plot/xMax"] = interval_x.hBound()
-            common.settings["Plot/yMin"] = interval_y.lBound()
-            common.settings["Plot/yMax"] = interval_y.hBound()
-

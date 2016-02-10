@@ -1,6 +1,6 @@
 from PyQt4.QtGui import QDialog, QLabel, QPushButton,\
         QGridLayout, QDoubleSpinBox
-from PyQt4.QtCore import QString, SIGNAL
+from PyQt4.QtCore import SIGNAL
 
 class Hardcopy(QDialog):
     """
@@ -15,7 +15,7 @@ class Hardcopy(QDialog):
         maxTime = self.timeList[1]
         timestep = self.timeList[2]
 
-        self.setWindowTitle(QString("Hardcopy"))
+        self.setWindowTitle(("Hardcopy"))
 
         startLabel = QLabel("Starting time")
         self.startDoubleSpinBox = QDoubleSpinBox()

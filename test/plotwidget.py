@@ -2,8 +2,9 @@
 
 import sys
 
-from PyQt4.QtGui import QApplication
+from qwt import QwtPlot
 from pygraph.plotwidget import PlotWidget
+from PyQt4.QtGui import QApplication
 
 import numpy as np
 
@@ -21,8 +22,11 @@ y2 = x2**3
 app = QApplication(sys.argv)
 plot = PlotWidget()
 
-datasets = {"One":wrapper(x1, y1), "Two": wrapper(x2, y2)}
+datasets = {"first.dataset":wrapper(x1, y1), "second.dataset": wrapper(x2, y2)}
 plot.plotFrame(datasets.keys(), datasets, "t = 0.5")
+plot.setAxisScale(QwtPlot.xBottom, 0, 5)
+plot.setAxisScale(QwtPlot.yLeft, 0, 5**3)
+plot.updateAxes()
 
 plot.show()
 app.exec_()

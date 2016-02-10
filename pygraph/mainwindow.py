@@ -12,11 +12,11 @@ from scidata.utils import FileTypeError
 
 import pygraph.resources
 
-from PyQt4.QtCore import Qt, QStringList
+from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QPixmap
 from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
-        QMainWindow, QPoint, QSettings, QSize, QSlider, QString, \
-        QTimer, QVariant, QMessageBox
+        QMainWindow, QPoint, QSettings, QSize, QSlider, \
+        QTimer, QMessageBox
 import math
 import re
 import sys
@@ -79,38 +79,43 @@ class MainWindow(QMainWindow):
         qset = QSettings()
 
         common.settings["Animation/FPS"] = qset.value("Animation/FPS",
-                QVariant(common.settings["Animation/FPS"])).toDouble()[0]
+                common.settings["Animation/FPS"])
 
-        position = qset.value("MainWindow/Position", QVariant(QPoint(0,0)))
-        self.move(position.toPoint())
-        size = qset.value("MainWindow/Size", QVariant(QSize(600,400)))
-        self.resize(size.toSize())
+        position = qset.value("MainWindow/Position", (QPoint(0,0)))
+        self.move(position)
+        size = qset.value("MainWindow/Size", (QSize(600,400)))
+        self.resize(size)
 
         common.settings["DataEditor/Position"] = \
                 qset.value("DataEditor/Position",
-                QVariant(common.settings["DataEditor/Position"])).toPoint()
+                common.settings["DataEditor/Position"])
         common.settings["DataEditor/Size"] = qset.value("DataEditor/Size",
-                QVariant(common.settings["DataEditor/Size"])).toSize()
-
-        common.settings["PyGraph/Debug"] = qset.value(
-            "PyGraph/Debug", QVariant(QString(str(
-                common.settings["PyGraph/Debug"])))).toString() == 'True'
-
-        common.settings["Plot/legendTextLength"] = qset.value(
-            "Plot/legendTextLength", QVariant(common.settings[
-                "Plot/legendTextLength"])).toInt()[0]
-        common.settings["Plot/xGridEnabled"] = qset.value(
-            "Plot/xGridEnabled", QVariant(QString(str(
-                common.settings["Plot/xGridEnabled"])))).toString() == 'True'
-        common.settings["Plot/yGridEnabled"] = qset.value(
-            "Plot/yGridEnabled", QVariant(QString(str(
-                common.settings["Plot/yGridEnabled"])))).toString() == 'True'
+                common.settings["DataEditor/Size"])
 
         common.settings["PlotSettings/Position"] = qset.value(
-                "PlotSettings/Position", QVariant(
-                    common.settings["PlotSettings/Position"])).toPoint()
+                "PlotSettings/Position",
+                common.settings["PlotSettings/Position"])
+        common.settings["PlotSettings/Size"] = qset.value(
+                "PlotSettings/Size", common.settings["PlotSettings/Size"])
+
+        common.settings["PyGraph/Debug"] = qset.value(
+            "PyGraph/Debug", str(common.settings[
+                "PyGraph/Debug"])) == 'True'
+
+        common.settings["Plot/legendTextLength"] = qset.value(
+            "Plot/legendTextLength", common.settings["Plot/legendTextLength"])
+        common.settings["Plot/xGridEnabled"] = qset.value(
+            "Plot/xGridEnabled", str(common.settings["Plot/xGridEnabled"])) \
+                    == 'True'
+        common.settings["Plot/yGridEnabled"] = qset.value(
+            "Plot/yGridEnabled", str(common.settings["Plot/yGridEnabled"])) \
+                    == 'True'
+
+        common.settings["PlotSettings/Position"] = qset.value(
+                "PlotSettings/Position",
+                    common.settings["PlotSettings/Position"])
         common.settings["PlotSettings/Size"] = qset.value("PlotSettings/Size",
-                QVariant(common.settings["PlotSettings/Size"])).toSize()
+                common.settings["PlotSettings/Size"])
 
         self.timer = QTimer()
         self.timer.setInterval(1000.0/common.settings["Animation/FPS"])
@@ -120,6 +125,7 @@ class MainWindow(QMainWindow):
         # Create plot
         self.plotwidget = PlotWidget(self)
         self.setCentralWidget(self.plotwidget)
+        self.connect(self.plotwidget, SIGNAL("changedStatus"), self.updateStatusBar)
 
         # Basic actions
         importDataAction = self.createAction("&Import...", self.importDataSlot,
@@ -140,6 +146,8 @@ class MainWindow(QMainWindow):
                 "Ctrl+L", None, "Maximum length of the items in the legend")
         FPSEditAction = self.createAction("&FPS...", self.FPSEditSlot,
                 "Ctrl+F", None, "Set the number of frames per second")
+        resetPlotAction = self.createAction("Reset", self.resetPlotSlot,
+                "Esc", None, "Reset plot")
         reloadDataAction = self.createAction("&Reload", self.reloadDataSlot,
                 "Ctrl+R", "file-view-refresh", "Reload data")
 
@@ -182,6 +190,7 @@ class MainWindow(QMainWindow):
         editMenu.addAction(plotSettingsAction)
         editMenu.addAction(legendEditAction)
         editMenu.addAction(FPSEditAction)
+        editMenu.addAction(resetPlotAction)
         editMenu.addAction(reloadDataAction)
 
         # Play menu
@@ -316,25 +325,25 @@ class MainWindow(QMainWindow):
         """
         qset = QSettings()
         qset.setValue("Animation/FPS",
-                QVariant(common.settings["Animation/FPS"]))
-        qset.setValue("MainWindow/Position", QVariant(self.pos()))
-        qset.setValue("MainWindow/Size", QVariant(self.size()))
+                (common.settings["Animation/FPS"]))
+        qset.setValue("MainWindow/Position", (self.pos()))
+        qset.setValue("MainWindow/Size", (self.size()))
         qset.setValue("DataEditor/Position",
-                QVariant(common.settings["DataEditor/Position"]))
+                (common.settings["DataEditor/Position"]))
         qset.setValue("DataEditor/Size",
-                QVariant(common.settings["DataEditor/Size"]))
+                (common.settings["DataEditor/Size"]))
         qset.setValue("PyGraph/Debug",
                 str(common.settings["PyGraph/Debug"]))
         qset.setValue("Plot/legendTextLength",
-                QVariant(common.settings["Plot/legendTextLength"]))
+                (common.settings["Plot/legendTextLength"]))
         qset.setValue("Plot/xGridEnabled",
                 str(common.settings["Plot/xGridEnabled"]))
         qset.setValue("Plot/yGridEnabled",
                 str(common.settings["Plot/yGridEnabled"]))
         qset.setValue("PlotSettings/Position",
-                QVariant(common.settings["PlotSettings/Position"]))
+                (common.settings["PlotSettings/Position"]))
         qset.setValue("PlotSettings/Size",
-                QVariant(common.settings["PlotSettings/Size"]))
+                (common.settings["PlotSettings/Size"]))
 
     def updateData(self):
         """
@@ -365,7 +374,6 @@ class MainWindow(QMainWindow):
         common.settings['Plot/yMax'] = ymax + 0.1*size
 
         self.plotwidget.applySettings()
-        self.plotwidget.resetZoomer()
 
     def setTimer(self):
         """
@@ -469,7 +477,7 @@ class MainWindow(QMainWindow):
         """
         Exports a data frame in ASCII format or as an image
         """
-        filterString = QStringList()
+        filterString = []
         filterString.append("Gnuplot ASCII .dat (*.dat)")
         filterString.append("Portable Network Graphics .png (*.png)")
 
@@ -546,12 +554,18 @@ class MainWindow(QMainWindow):
         """
         if len(self.datasets.keys()) > 0:
             dataedit = DataEditor(self.datasets, self)
-            self.connect(dataedit, SIGNAL("changed"), self.updateDataSlot)
+            self.connect(dataedit, SIGNAL("changedPlotData"), self.updateDataSlot)
             dataedit.show()
         else:
             QMessageBox.warning(self, "No data loaded",
                 "You have to import at least one dataset before you can "
                                 "edit data.")
+
+    def resetPlotSlot(self):
+        """
+        Reset the default zoom level for the plot
+        """
+        self.plotwidget.resetPlot()
 
     def reloadDataSlot(self):
         """
@@ -581,7 +595,7 @@ class MainWindow(QMainWindow):
         Modifies the plot's settings
         """
         pltsettings = PlotSettings(self)
-        self.connect(pltsettings, SIGNAL("changed"),
+        self.connect(pltsettings, SIGNAL("changedPlotSettings"),
                 self.plotwidget.applySettings)
         pltsettings.show()
 
@@ -719,6 +733,16 @@ class MainWindow(QMainWindow):
         self.plotFrame()
 
 ###############################################################################
+# Status bar
+###############################################################################
+
+    def updateStatusBar(self):
+        """
+        Updates the status bar message
+        """
+        self.statusBar().showMessage(common.status)
+
+###############################################################################
 # Visualization routines
 ###############################################################################
 
@@ -732,7 +756,7 @@ class MainWindow(QMainWindow):
             dsets = {}
             for key, item in self.datasets.iteritems():
                 dsets[key] = item.data
-            self.plotwidget.plotAll(self.datasets.keys(), dsets)
+            self.plotwidget.plotAll(dsets)
         else:
             self.plotAllFlag = False
             self.plotwidget.unPlotAll()
@@ -758,7 +782,7 @@ class MainWindow(QMainWindow):
         self.slider.setValue(int((self.time - self.tinit) / self.timestep))
 
         tstring = "t = " + self.timeFormat % self.time
-        self.plotwidget.plotFrame(self.datasets.keys(), frames, tstring)
+        self.plotwidget.plotFrame(frames, tstring)
 
     def timeout(self):
         """

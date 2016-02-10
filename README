@@ -6,17 +6,21 @@ viewing 1D data files.
 
 pygraph is a PyQt re-implementation of xGraph and yGraph:
 
+News
+----
+
+pygraph now uses PythonQwt a pure python replacement of PyQwt, built on top of
+PyQt. This should greately simplify porting pygraph to new machines. 
+
 
 Requirements
 ------------
 
 * >= python-2.6
 * >= PyQt-4.4
-* >= PyQwt-5.2
+* >= PythonQwt-0.5.5
 * >= scidata-0.1
 * >= qt-4.4
-* >= qwt-5.2
-* <  qwt-6.0
 
 
 Installation
