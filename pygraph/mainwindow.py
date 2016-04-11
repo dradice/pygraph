@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
 
     Members
     * dataset    : a dictionary of DataSets
+    * iframe     : currently displayed frame
     * plotwidget : the plot widget
     * playAction : the "play" action
     * pauseAction: the "pause" action
@@ -39,6 +40,7 @@ class MainWindow(QMainWindow):
     * timestep   : timestep
     * tinit      : initial time
     """
+
 ###############################################################################
 # Initialization methods
 ###############################################################################
@@ -50,6 +52,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
 
         self.datasets    = {}
+        self.iframe     = 0
         self.playAction  = None
         self.pauseAction = None
         self.plotAllFlag = False
@@ -345,6 +348,10 @@ class MainWindow(QMainWindow):
         qset.setValue("PlotSettings/Size",
                 (common.settings["PlotSettings/Size"]))
 
+###############################################################################
+# Utility methods
+###############################################################################
+
     def updateData(self):
         """
         Computes the working data from the initial data
@@ -379,6 +386,8 @@ class MainWindow(QMainWindow):
         """
         Computes initial and final time, as well as the timestep
         """
+        self.iframe = 0
+
         # Computes initial and final time
         self.tfinal = max([dset.data.time[-1] for dset in \
                 self.datasets.itervalues()])
@@ -394,9 +403,11 @@ class MainWindow(QMainWindow):
             else:
                 dt = 1.0
             self.timestep = min(self.timestep, dt)
-        int_n_timesteps = math.ceil((self.tfinal - self.tinit)/self.timestep)
-        if int_n_timesteps > 0:
-            self.timestep = (self.tfinal - self.tinit)/int_n_timesteps
+        self.nframes = int((self.tfinal - self.tinit)/self.timestep) + 1
+        if self.nframes > 1:
+            self.timestep = (self.tfinal - self.tinit)/(self.nframes - 1)
+        self.slider.setRange(0, self.nframes-1)
+        self.slider.setValue(0)
 
         # Formatting options for the time
         n1 = len(str(int(self.tfinal)))
@@ -408,10 +419,6 @@ class MainWindow(QMainWindow):
             n2 = 1
         nt = n1 + n2 + 2
         self.timeFormat = '% ' + str(nt) + '.' + str(n2) + 'f'
-
-        self.nframes = int((self.tfinal - self.tinit) / self.timestep)
-        self.slider.setRange(0, self.nframes)
-        self.slider.setValue(0)
 
     def createAction(self, text, slot=None, shortcut=None, icon=None,
             tip=None, checkable=False, signal="triggered()"):
@@ -663,16 +670,18 @@ class MainWindow(QMainWindow):
         """
         Visualize the previous frame
         """
-        if self.time - self.timestep >= self.tinit:
-            self.time = self.time - self.timestep
+        if self.iframe > 0:
+            self.iframe -= 1
+            self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
 
     def stepForwardSlot(self):
         """
         Visualize the next frame
         """
-        if self.time + self.timestep <= self.tfinal:
-            self.time = self.time + self.timestep
+        if self.iframe < self.nframes - 1:
+            self.iframe += 1
+            self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
 
     def gotoStartSlot(self):
@@ -680,6 +689,7 @@ class MainWindow(QMainWindow):
         Go to the first frame
         """
         if self.time != self.tinit:
+            self.iframe = 0
             self.time = self.tinit
             self.plotFrame()
 
@@ -688,7 +698,8 @@ class MainWindow(QMainWindow):
         Go to the last frame
         """
         if self.time != self.tfinal:
-            self.time = self.tfinal
+            self.iframe = self.nframes - 1
+            self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
 
     def gotoTimeSlot(self):
@@ -700,7 +711,8 @@ class MainWindow(QMainWindow):
                     self.tfinal),
                 self.time, self.tinit, self.tfinal)
         if ok and self.time != time:
-            self.time = time
+            self.iframe = int(math.round((time - self.tinit)/self.timestep))
+            self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
 
 ###############################################################################
@@ -729,7 +741,8 @@ class MainWindow(QMainWindow):
 ###############################################################################
 
     def sliderSlot(self, value):
-        self.time = self.tinit + self.timestep*value
+        self.iframe = value
+        self.time = self.tinit + self.iframe*self.timestep
         self.plotFrame()
 
 ###############################################################################
@@ -779,7 +792,7 @@ class MainWindow(QMainWindow):
         for key, item in self.datasets.iteritems():
             frames[key] = item.get_frame(self.time)
 
-        self.slider.setValue(int((self.time - self.tinit) / self.timestep))
+        self.slider.setValue(self.iframe)
 
         tstring = "t = " + self.timeFormat % self.time
         self.plotwidget.plotFrame(frames, tstring)
@@ -789,12 +802,14 @@ class MainWindow(QMainWindow):
         Update the plot
         """
         if common.settings["Animation/FPS"] >= 25:
-            self.time += common.settings["Animation/FPS"]/25*self.timestep
+            self.iframe += int(common.settings["Animations/FPS"]/25.0)
         else:
-            self.time += self.timestep
-        if(self.time > self.tfinal):
-            self.time = self.tfinal
+            self.iframe += 1
+        if(self.iframe > self.nframes):
+            self.iframe = self.nframes - 1
+            self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
             self.pauseSlot()
         else:
+            self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
