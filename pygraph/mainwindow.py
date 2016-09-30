@@ -81,8 +81,8 @@ class MainWindow(QMainWindow):
         # Restore settings
         qset = QSettings()
 
-        common.settings["Animation/FPS"] = qset.value("Animation/FPS",
-                common.settings["Animation/FPS"])
+        common.settings["Animation/FPS"] = float(qset.value("Animation/FPS",
+                common.settings["Animation/FPS"]))
 
         position = qset.value("MainWindow/Position", (QPoint(0,0)))
         self.move(position)
@@ -802,7 +802,7 @@ class MainWindow(QMainWindow):
         Update the plot
         """
         if common.settings["Animation/FPS"] >= 25:
-            self.iframe += int(common.settings["Animations/FPS"]/25.0)
+            self.iframe += int(common.settings["Animation/FPS"]/25.0)
         else:
             self.iframe += 1
         if(self.iframe > self.nframes):
