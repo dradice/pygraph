@@ -139,7 +139,7 @@ class PlotWidget(QwtPlot):
         ymax = common.settings["Plot/yMax"]
 
         if common.settings["Plot/xLogScale"]:
-            xmin = max(ymin, common.settings["Plot/xLogScaleMin"])
+            xmin = max(xmin, common.settings["Plot/xLogScaleMin"])
         if common.settings["Plot/yLogScale"]:
             ymin = max(ymin, common.settings["Plot/yLogScaleMin"])
 
