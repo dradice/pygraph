@@ -83,6 +83,8 @@ class MainWindow(QMainWindow):
 
         common.settings["Animation/FPS"] = float(qset.value("Animation/FPS",
                 common.settings["Animation/FPS"]))
+        common.settings["Animation/MaxNFrames"] = int(qset.value(
+            "Animation/MaxNFrames", common.settings["Animation/MaxNFrames"]))
 
         position = qset.value("MainWindow/Position", (QPoint(0,0)))
         self.move(position)
@@ -329,6 +331,8 @@ class MainWindow(QMainWindow):
         qset = QSettings()
         qset.setValue("Animation/FPS",
                 (common.settings["Animation/FPS"]))
+        qset.setValue("Animation/MaxNFrames",
+                (common.settings["Animation/MaxNFrames"]))
         qset.setValue("MainWindow/Position", (self.pos()))
         qset.setValue("MainWindow/Size", (self.size()))
         qset.setValue("DataEditor/Position",
@@ -404,6 +408,7 @@ class MainWindow(QMainWindow):
                 dt = 1.0
             self.timestep = min(self.timestep, dt)
         self.nframes = int((self.tfinal - self.tinit)/self.timestep) + 1
+        self.nframes = min(self.nframes,common.settings["Animation/MaxNFrames"])
         if self.nframes > 1:
             self.timestep = (self.tfinal - self.tinit)/(self.nframes - 1)
         self.slider.setRange(0, self.nframes-1)
@@ -711,7 +716,7 @@ class MainWindow(QMainWindow):
                     self.tfinal),
                 self.time, self.tinit, self.tfinal)
         if ok and self.time != time:
-            self.iframe = int(math.round((time - self.tinit)/self.timestep))
+            self.iframe = int(round((time - self.tinit)/self.timestep))
             self.time = self.tinit + self.iframe*self.timestep
             self.plotFrame()
 

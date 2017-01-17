@@ -8,6 +8,7 @@ Shared application data
 """
 settings = {
         "Animation/FPS": 2.0,
+        "Animation/MaxNFrames": 10000,
         "Animation/Smooth": False,
         "DataEditor/Position": QPoint(0,0),
         "DataEditor/Size": QSize(500,300),
