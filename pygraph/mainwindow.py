@@ -714,7 +714,7 @@ class MainWindow(QMainWindow):
         time, ok = QInputDialog.getDouble(self, "Go to time...",
                 "Choose a time in the interval [%g, %g]" % (self.tinit,
                     self.tfinal),
-                self.time, self.tinit, self.tfinal)
+                self.time, self.tinit, self.tfinal, len(str(self.timestep)))
         if ok and self.time != time:
             self.iframe = int(round((time - self.tinit)/self.timestep))
             self.time = self.tinit + self.iframe*self.timestep
