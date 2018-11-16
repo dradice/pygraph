@@ -403,7 +403,10 @@ class MainWindow(QMainWindow):
         self.timestep = sys.float_info.max
         for dset in self.datasets.itervalues():
             if len(dset.data.time) > 1:
-                dt = np.diff(np.array(dset.data.time)).min()
+                t_arr = np.array(dset.data.time)
+                dt_arr = np.diff(t_arr)
+                idx = dt_arr > 1e-10*t_arr.max()
+                dt = dt_arr[idx].max()
             else:
                 dt = 1.0
             self.timestep = min(self.timestep, dt)
