@@ -10,7 +10,7 @@ cd export/OSX
 
 $MAKEICNS \
     -in ../../pygraph.jpg \
-    -out pygraph.icns
+    -out pygraph.icns || exit 1
 
 $PYINSTALLER \
     --clean \
@@ -20,4 +20,4 @@ $PYINSTALLER \
     --windowed \
     --onefile \
     --strip \
-    ../../bin/pygraph
+    ../../bin/pygraph || exit 1
