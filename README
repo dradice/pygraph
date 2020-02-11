@@ -29,7 +29,7 @@ Installation
 After all the required packages are installed, pygraph can be installed using
 the following commands
 
-$ hg clone --insecure https://bitbucket.org/dradice/pygraph
+$ git clone https://bitbucket.org/dradice/pygraph.git
 
 $ cd pygraph
 
