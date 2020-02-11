@@ -15,6 +15,9 @@ $MAKEICNS \
 $PYINSTALLER \
     --clean \
     --hidden-import=h5py.h5ac \
+    --hidden-import=appdirs \
+    --hidden-import=packaging \
+    --hidden-import=packaging.requirements \
     --icon=pygraph.icns \
     --runtime-hook=../../rthook_pyqt4.py \
     --windowed \
