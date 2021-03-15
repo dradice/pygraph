@@ -13,8 +13,8 @@ class QtBuild(build):
         # Search for pyuic4 in python bin dir, then in the $Path.
         if py_file is None:
             py_file = splitext(qrc_file)[0] + ".py"
-        if os.system('pyrcc4 "%s" -o "%s"' % (qrc_file, py_file)) > 0:
-            print "Unable to generate python module for resource file", qrc_file
+        if os.system('pyrcc4 -py3 "%s" -o "%s"' % (qrc_file, py_file)) > 0:
+            print("Unable to generate python module for resource file", qrc_file)
             exit(1)
 
     def run(self):

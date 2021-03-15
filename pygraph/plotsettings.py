@@ -91,8 +91,8 @@ class PlotSettings(QDialog):
                     self.yMinLabelLine.lineEdit.text().replace(",",".")),
                 "Plot/yMax":float(
                     self.yMaxLabelLine.lineEdit.text().replace(",",".")),
-                "Plot/xAxisTitle":unicode(self.xTitleLabelLine.lineEdit.text()),
-                "Plot/yAxisTitle":unicode(self.yTitleLabelLine.lineEdit.text()),
+                "Plot/xAxisTitle":str(self.xTitleLabelLine.lineEdit.text()),
+                "Plot/yAxisTitle":str(self.yTitleLabelLine.lineEdit.text()),
                 "Plot/yLogScale":self.yLogScale.isChecked(),
                 "Plot/yGridEnabled":self.yGridCheck.isChecked()
                   }

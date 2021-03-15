@@ -37,7 +37,7 @@ class DataEditor(QDialog):
         self.dataList = QListWidget()
         self.dataList.setSelectionMode(QAbstractItemView.SingleSelection)
 
-        for key, dset in datasets.iteritems():
+        for key, dset in datasets.items():
             self.dataList.addItem(ListObj(key, deepcopy(dset.transform)))
             self.clean += 2 * [True]
         self.dataList.setCurrentItem(self.dataList.item(0))

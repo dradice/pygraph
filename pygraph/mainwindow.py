@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
 
         # Read data
         self.parseCLI(args, options)
-        for key, dset in self.datasets.iteritems():
+        for key, dset in self.datasets.items():
             try:
                 dset.read_data()
             except FileTypeError as e:
@@ -360,7 +360,7 @@ class MainWindow(QMainWindow):
         """
         Computes the working data from the initial data
         """
-        for dset in self.datasets.itervalues():
+        for dset in self.datasets.values():
             dset.transform_data()
 
     def setLimits(self):
@@ -371,7 +371,7 @@ class MainWindow(QMainWindow):
         xmax = - sys.float_info.max
         ymin =   sys.float_info.max
         ymax = - sys.float_info.max
-        for dset in self.datasets.itervalues():
+        for dset in self.datasets.values():
             xmin = min(xmin, dset.data.data_x.min())
             xmax = max(xmax, dset.data.data_x.max())
             ymin = min(ymin, dset.data.data_y.min())
@@ -394,14 +394,14 @@ class MainWindow(QMainWindow):
 
         # Computes initial and final time
         self.tfinal = max([dset.data.time[-1] for dset in \
-                self.datasets.itervalues()])
+                self.datasets.values()])
         self.tinit = min([dset.data.time[0] for dset in \
-                self.datasets.itervalues()])
+                self.datasets.values()])
         self.time = self.tinit
 
         # Computes timestep
         self.timestep = sys.float_info.max
-        for dset in self.datasets.itervalues():
+        for dset in self.datasets.values():
             if len(dset.data.time) > 1:
                 t_arr = np.array(dset.data.time)
                 dt_arr = np.diff(t_arr)
@@ -458,7 +458,7 @@ class MainWindow(QMainWindow):
         Import data using the GUI
         """
         fileFilters = ""
-        for key, value in common.formats.iteritems():
+        for key, value in common.formats.items():
             fileFilters += ";;" + key
         filterString = fileFilters[2:]
 
@@ -511,12 +511,12 @@ class MainWindow(QMainWindow):
 
             if extension == "Gnuplot ASCII .dat (*.dat)":
                 frames = {}
-                for key, item in self.datasets.iteritems():
+                for key, item in self.datasets.items():
                     frames[key] = item.get_frame(self.time)
 
                 L = []
                 idx = 0
-                for key, item in frames.iteritems():
+                for key, item in frames.items():
                     L.append("# Index " + str(idx) + ": " + key + ' @ t = ' +
                             str(item.time) + '\n')
                     L += item.format()
@@ -549,7 +549,7 @@ class MainWindow(QMainWindow):
             frameNumber = int(math.ceil((endTime - startTime) / self.timestep))
             n = len(str(frameNumber))
             t_cur = self.time
-            for i in xrange(frameNumber + 1):
+            for i in range(frameNumber + 1):
                 self.time = startTime + i * self.timestep
                 if self.time > endTime:
                     self.time = endTime
@@ -567,7 +567,7 @@ class MainWindow(QMainWindow):
         """
         Rescale/shift the data
         """
-        if len(self.datasets.keys()) > 0:
+        if len(list(self.datasets.keys())) > 0:
             dataedit = DataEditor(self.datasets, self)
             self.connect(dataedit, SIGNAL("changedPlotData"), self.updateDataSlot)
             dataedit.show()
@@ -586,7 +586,7 @@ class MainWindow(QMainWindow):
         """
         Reloads the data from file
         """
-        for dset in self.datasets.itervalues():
+        for dset in self.datasets.values():
             dset.read_data()
         self.updateData()
         self.setLimits()
@@ -775,7 +775,7 @@ class MainWindow(QMainWindow):
             self.plotAllFlag = True
             self.pauseSlot()
             dsets = {}
-            for key, item in self.datasets.iteritems():
+            for key, item in self.datasets.items():
                 dsets[key] = item.data
             self.plotwidget.plotAll(dsets)
         else:
@@ -797,7 +797,7 @@ class MainWindow(QMainWindow):
         self.unPlotAll()
 
         frames = {}
-        for key, item in self.datasets.iteritems():
+        for key, item in self.datasets.items():
             frames[key] = item.get_frame(self.time)
 
         self.slider.setValue(self.iframe)

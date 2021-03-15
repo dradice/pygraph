@@ -223,7 +223,7 @@ class PlotWidget(QwtPlot):
         """this function plots all the frames at once"""
         clist = deepcopy(common.colors)
         self.acurves = {}
-        for key in datasets.iterkeys():
+        for key in datasets.keys():
             dataset = datasets[key]
             self.acurves[key] = []
             mycolor = clist.pop(0)
@@ -234,7 +234,7 @@ class PlotWidget(QwtPlot):
             else:
                 fac = 1
                 nframe = dataset.nframes
-            for i in xrange(nframe):
+            for i in range(nframe):
                 cf = dataset.frame(i*fac)
                 currentColor = QColor()
                 currentColor.setHsv(basecolor.hue(), basecolor.saturation(),
@@ -265,9 +265,9 @@ class PlotWidget(QwtPlot):
             representing the coordinates of the points in the current frame
             WARNING: the 'name' entries have to be unique!!!
         """
-        for key in datasets.iterkeys():
+        for key in datasets.keys():
             rawdata = datasets[key]
-            if not self.curves.has_key(key):
+            if key not in self.curves:
                 ltext = shortText(key, common.settings["Plot/legendTextLength"])
                 ltext = QwtText(ltext)
                 ltext.setFont(QFont(common.settings["Plot/font"],
@@ -317,7 +317,7 @@ class PlotWidget(QwtPlot):
         """
             Reset the name of the fields in the legend
         """
-        for key, item in self.curves.iteritems():
+        for key, item in self.curves.items():
             ltext = shortText(key, common.settings["Plot/legendTextLength"])
             ltext = QwtText(ltext)
             ltext.setFont(QFont(common.settings["Plot/font"],
@@ -331,7 +331,7 @@ class PlotWidget(QwtPlot):
             (as suggested by PyQwt Source code)
         """
         plotItem.setVisible(status)
-        for key, item in self.curves.iteritems():
+        for key, item in self.curves.items():
             if item == plotItem:
                 mykey = key
                 break
