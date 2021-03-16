@@ -13,7 +13,7 @@ class QtBuild(build):
         # Search for pyuic4 in python bin dir, then in the $Path.
         if py_file is None:
             py_file = splitext(qrc_file)[0] + ".py"
-        if os.system('pyrcc4 -py3 "%s" -o "%s"' % (qrc_file, py_file)) > 0:
+        if not os.path.isfile(py_file) and os.system('pyrcc4 -py3 "%s" -o "%s"' % (qrc_file, py_file)) > 0:
             print("Unable to generate python module for resource file", qrc_file)
             exit(1)
 
@@ -25,17 +25,17 @@ class QtBuild(build):
         build.run(self)
 
 setup(
-		name = 'pygraph',
-		version = '0.2',
-		description = 'A freely available, lightweight and easy to use ' +
-            'visualization client for viewing 1D data files.',
-        author = 'David Radice',
-        author_email = 'david.radice@aei.mpg.de',
-        cmdclass = {'build': QtBuild},
-        license = 'GPLv3',
-        packages = ['pygraph'],
-        package_data = {'pygraph' : ['data/*']},
-        requires = ['scidata', 'PyQt', 'PyQwt'],
-        scripts = ['./bin/pygraph'],
-        url = 'https://bitbucket.org/dradice/scidata'
-        )
+    name = 'pygraph',
+    version = '1.0',
+    description = 'A freely available, lightweight and easy to use ' +
+        'visualization client for viewing 1D data files.',
+    author = 'David Radice',
+    author_email = 'david.radice@psu.edu',
+    cmdclass = {'build': QtBuild},
+    license = 'GPLv3',
+    packages = ['pygraph'],
+    package_data = {'pygraph' : ['data/*']},
+    requires = ['PyQt4', 'PythonQwt'],
+    scripts = ['./bin/pygraph'],
+    url = 'https://bitbucket.org/dradice/pygraph'
+)

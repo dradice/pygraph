@@ -108,7 +108,7 @@ class DataSet:
         if ftype == "xg":
             return xg.parsefile(fname, col)
         elif ftype == "pygraph":
-            return pyg.parsefile(fname)
+            return pyg.parsefile(fname, float64)
         elif ftype == "CarpetIOASCII":
             return asc.parse_1D_file(fname, self.reflevel, col)
         elif ftype == "h5":

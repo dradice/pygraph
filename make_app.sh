@@ -3,10 +3,10 @@
 export PYTHONPATH=$PYTHONPATH:$PWD
 
 MAKEICNS=/opt/local/bin/makeicns
-PYINSTALLER=/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pyinstaller
+PYINSTALLER=$HOME/Library/Python/3.8/bin/pyinstaller
 
-mkdir -p export/OSX
-cd export/OSX
+mkdir -p export/macOS
+cd export/macOS
 
 $MAKEICNS \
     -in ../../pygraph.jpg \
@@ -24,3 +24,8 @@ $PYINSTALLER \
     --onefile \
     --strip \
     ../../bin/pygraph || exit 1
+
+hdiutil create \
+    -volname pygraph \
+    -srcfolder dist/pygraph.app \
+    -ov -format UDZO pygraph.dmg

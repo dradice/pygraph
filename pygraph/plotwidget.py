@@ -1,3 +1,5 @@
+from __future__ import division
+
 from qwt import *
 from PyQt4.QtGui import QBrush, QColor, QFont, QPen, QRubberBand
 from PyQt4.QtCore import QEvent, QObject, QPoint, QRect, QSize, QSizeF, Qt, SIGNAL
@@ -10,7 +12,7 @@ def shortText(text, length):
     if len(text) < length:
         return text
     else:
-        return text[0:length/2] + "..." + text[-length/2:]
+        return text[0:length//2] + "..." + text[-length//2:]
 
 class ZoomStack(object):
     """
@@ -230,7 +232,7 @@ class PlotWidget(QwtPlot):
             basecolor = QColor(mycolor).toHsv()
             nframe = common.settings["Plot/maxFramesForPlotAll"]
             if nframe < dataset.nframes:
-                fac = dataset.nframes/nframe
+                fac = dataset.nframes//nframe
             else:
                 fac = 1
                 nframe = dataset.nframes
@@ -238,7 +240,7 @@ class PlotWidget(QwtPlot):
                 cf = dataset.frame(i*fac)
                 currentColor = QColor()
                 currentColor.setHsv(basecolor.hue(), basecolor.saturation(),
-                        basecolor.value() * float(i)/float(nframe),
+                        basecolor.value() * i/nframe,
                         basecolor.alpha())
                 qsymbol = QwtSymbol(QwtSymbol.Rect,
                         QBrush(QColor(currentColor)),

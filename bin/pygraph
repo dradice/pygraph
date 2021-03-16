@@ -2,7 +2,6 @@
 
 # Ignore PyGTK warnings
 import warnings
-warnings.filterwarnings("ignore", r".*PyGTK.*")
 warnings.filterwarnings("ignore", r".*converting a masked element to nan.*")
 
 import sys

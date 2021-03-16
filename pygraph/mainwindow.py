@@ -464,14 +464,17 @@ class MainWindow(QMainWindow):
 
         dialog = QFileDialog(self)
         dialog.setDirectory(os.curdir)
-        dialog.setNameFilter(filterString)
-        dialog.selectNameFilter("(*.asc)")
+        #dialog.setNameFilter(filterString)
+        #dialog.selectNameFilter("(*.asc)")
         dialog.setFileMode(QFileDialog.ExistingFile)
         if dialog.exec_():
             files = dialog.selectedFiles()
             fileName  = str(files[0])
             fileFilter = str(dialog.selectedNameFilter())
-            fileType = common.formats[fileFilter]
+            try:
+                fileType = common.formats[fileFilter]
+            except KeyError:
+                fileType = None
             self.datasets[fileName] = DataSet(fileName,
                     DataSetType.guess_from_name(fileName))
             self.datasets[fileName].add_datafile(fileName, fileType)
