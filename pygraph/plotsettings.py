@@ -1,12 +1,15 @@
-from PyQt4.Qt import SIGNAL
-from PyQt4.QtGui import QDialog, QWidget, QLabel, QLineEdit, QGridLayout, \
+from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QLineEdit, QGridLayout, \
                         QCheckBox, QPushButton, QHBoxLayout, QFrame, \
                         QVBoxLayout
+from PyQt5.QtCore import pyqtSignal
 
 from pygraph.common import settings
 
 class PlotSettings(QDialog):
     """A dialog to change plotting preferences"""
+
+    changedPlotSettings = pyqtSignal()
+
     def __init__(self, parent=None):
         super(PlotSettings, self).__init__(parent)
         self.parent = parent
@@ -73,8 +76,8 @@ class PlotSettings(QDialog):
 
         self.setLayout(layout)
 
-        self.connect(applyButton, SIGNAL("clicked()"), self.returnSettings)
-        self.connect(closeButton, SIGNAL("clicked()"), self.close)
+        applyButton.clicked.connect(self.returnSettings)
+        closeButton.clicked.connect(self.close)
 
 
     def returnSettings(self):
@@ -97,7 +100,7 @@ class PlotSettings(QDialog):
                 "Plot/yGridEnabled":self.yGridCheck.isChecked()
                   }
             settings.update(plotSettings)
-            self.emit(SIGNAL("changedPlotSettings"))
+            self.changedPlotSettings.emit()
         except ValueError:
             QMessageBox.critical(self, "Value Error",
                                "There were some errors reading "

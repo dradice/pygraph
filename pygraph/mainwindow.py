@@ -12,11 +12,10 @@ from scidata.utils import FileTypeError
 
 import pygraph.resources
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QPixmap
-from PyQt4.Qt import SIGNAL, QAction, QFileDialog, QInputDialog, QIcon,\
-        QMainWindow, QPoint, QSettings, QSize, QSlider, \
-        QTimer, QMessageBox
+from PyQt5.QtCore import Qt, QPoint, QSettings, QSize, QTimer
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction, QFileDialog, QInputDialog, \
+        QMainWindow, QSlider, QMessageBox, QWidget
 import math
 import re
 import sys
@@ -130,7 +129,7 @@ class MainWindow(QMainWindow):
         # Create plot
         self.plotwidget = PlotWidget(self)
         self.setCentralWidget(self.plotwidget)
-        self.connect(self.plotwidget, SIGNAL("changedStatus"), self.updateStatusBar)
+        self.plotwidget.changedStatus.connect(self.updateStatusBar)
 
         # Basic actions
         importDataAction = self.createAction("&Import...", self.importDataSlot,
@@ -237,7 +236,7 @@ class MainWindow(QMainWindow):
 
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setTracking(True)
-        self.connect(self.slider, SIGNAL("sliderMoved(int)"), self.sliderSlot)
+        self.slider.sliderMoved.connect(self.sliderSlot)
 
         playToolbar.addWidget(self.slider)
 
@@ -248,7 +247,7 @@ class MainWindow(QMainWindow):
             self.setTimer()
             self.plotFrame()
 
-        self.connect(self.timer, SIGNAL("timeout()"), self.timeout)
+        self.timer.timeout.connect(self.timeout)
 
     def parseColNumber(self, args, groupMode):
         if groupMode:
@@ -444,7 +443,7 @@ class MainWindow(QMainWindow):
             action.setToolTip(tip)
             action.setStatusTip(tip)
         if slot is not None:
-            self.connect(action, SIGNAL(signal), slot)
+            action.triggered.connect(slot)
         if checkable:
             action.setCheckable(True)
         return action
@@ -464,8 +463,6 @@ class MainWindow(QMainWindow):
 
         dialog = QFileDialog(self)
         dialog.setDirectory(os.curdir)
-        #dialog.setNameFilter(filterString)
-        #dialog.selectNameFilter("(*.asc)")
         dialog.setFileMode(QFileDialog.ExistingFile)
         if dialog.exec_():
             files = dialog.selectedFiles()
@@ -502,15 +499,13 @@ class MainWindow(QMainWindow):
         dialog = QFileDialog(self)
         dialog.setDirectory(os.curdir)
         dialog.setNameFilters(filterString)
-#        dialog.selectNameFilter("*.dat")
         dialog.setFileMode(QFileDialog.AnyFile)
         dialog.setAcceptMode(QFileDialog.AcceptSave)
-        dialog.setConfirmOverwrite(True)
 
         if dialog.exec_():
             files = dialog.selectedFiles()
             fileName = str(files[0])
-            extension = dialog.selectedFilter()
+            extension = dialog.selectedNameFilter()
 
             if extension == "Gnuplot ASCII .dat (*.dat)":
                 frames = {}
@@ -530,7 +525,7 @@ class MainWindow(QMainWindow):
                 f.writelines(L[:-1])
                 f.close()
             elif extension == "Portable Network Graphics .png (*.png)":
-                QPixmap().grabWidget(self.plotwidget).save(fileName)
+                QWidget.grab(self.plotwidget).save(fileName)
 
     def hardcopySlot(self):
         """
@@ -557,8 +552,8 @@ class MainWindow(QMainWindow):
                 if self.time > endTime:
                     self.time = endTime
                 self.plotFrame()
-                QPixmap().grabWidget(self.plotwidget).save(dest + os.sep
-                                     + "frame-" + str(i).zfill(n) + ".png")
+                QWidget.grab(self.plotwidget).save(dest + os.sep
+                             + "frame-" + str(i).zfill(n) + ".png")
             self.time = t_cur
             self.plotFrame()
 
@@ -572,7 +567,7 @@ class MainWindow(QMainWindow):
         """
         if len(list(self.datasets.keys())) > 0:
             dataedit = DataEditor(self.datasets, self)
-            self.connect(dataedit, SIGNAL("changedPlotData"), self.updateDataSlot)
+            dataedit.changedPlotData.connect(self.updateDataSlot)
             dataedit.show()
         else:
             QMessageBox.warning(self, "No data loaded",
@@ -613,8 +608,7 @@ class MainWindow(QMainWindow):
         Modifies the plot's settings
         """
         pltsettings = PlotSettings(self)
-        self.connect(pltsettings, SIGNAL("changedPlotSettings"),
-                self.plotwidget.applySettings)
+        pltsettings.changedPlotSettings.connect(self.plotwidget.applySettings)
         pltsettings.show()
 
     def legendEditSlot(self):
@@ -623,8 +617,8 @@ class MainWindow(QMainWindow):
         """
         length, ok = QInputDialog.getInt(self, "Maximum length of the items " +\
                 "in the legend", "Length",
-                common.settings["Plot/legendTextLength"], 6, 256, 1)
-        if ok and length != common.settings["Plot/legendTextLength"]:
+                int(common.settings["Plot/legendTextLength"]), 6, 256, 1)
+        if ok and length != int(common.settings["Plot/legendTextLength"]):
             common.settings["Plot/legendTextLength"] = length
             self.plotwidget.resetLegend()
 
@@ -805,8 +799,12 @@ class MainWindow(QMainWindow):
 
         self.slider.setValue(self.iframe)
 
-        tstring = "t = " + self.timeFormat % self.time
-        self.plotwidget.plotFrame(frames, tstring)
+        # Do not update the time stamp, if we have not yet read any data
+        try:
+            tstring = "t = " + self.timeFormat % self.time
+            self.plotwidget.plotFrame(frames, tstring)
+        except AttributeError:
+            pass
 
     def timeout(self):
         """

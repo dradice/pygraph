@@ -1,7 +1,7 @@
 import sys
 
 import platform
-from PyQt4.Qt import QPoint, QSize
+from PyQt5.QtCore import QPoint, QSize
 
 """
 Shared application data

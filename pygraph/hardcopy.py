@@ -1,6 +1,5 @@
-from PyQt4.QtGui import QDialog, QLabel, QPushButton,\
+from PyQt5.QtWidgets import QDialog, QLabel, QPushButton,\
         QGridLayout, QDoubleSpinBox
-from PyQt4.QtCore import SIGNAL
 
 class Hardcopy(QDialog):
     """
@@ -44,8 +43,8 @@ class Hardcopy(QDialog):
 
         self.setLayout(layout)
 
-        self.connect(okButton, SIGNAL("clicked()"), self.okSlot)
-        self.connect(cancelButton, SIGNAL("clicked()"), self.cancelEvent)
+        okButton.clicked.connect(self.okSlot)
+        cancelButton.clicked.connect(self.cancelEvent)
 
     def okSlot(self):
         """docstring for applySlot"""

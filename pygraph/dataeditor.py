@@ -1,9 +1,10 @@
 from copy import deepcopy
-from PyQt4.QtGui import QDialog, QListWidgetItem, QListWidget, \
+from PyQt5.QtWidgets import QDialog, QListWidgetItem, QListWidget, \
                         QAbstractItemView, QLabel, QLineEdit, \
-                        QToolButton, QIcon, QPushButton, \
+                        QToolButton, QPushButton, \
                         QHBoxLayout, QGridLayout, QMessageBox
-from PyQt4.QtCore import SIGNAL
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal
 from numpy import *
 
 import pygraph.common as common
@@ -13,6 +14,8 @@ class DataEditor(QDialog):
     """
     A dialog to transform datasets
     """
+
+    changedPlotData = pyqtSignal()
 
     def __init__(self, datasets, parent=None):
         super(DataEditor, self).__init__(parent)
@@ -86,18 +89,15 @@ class DataEditor(QDialog):
 
         self.setLayout(layout)
 
-        self.connect(applyButton, SIGNAL("clicked()"), self.applyTransf)
-        self.connect(closeButton, SIGNAL("clicked()"), self.close)
+        applyButton.clicked.connect(self.applyTransf)
+        closeButton.clicked.connect(self.close)
 
-        self.connect(self.xTransf, SIGNAL("editingFinished()"),
-                self.xTransfValidate)
-        self.connect(self.yTransf, SIGNAL("editingFinished()"),
-                self.yTransfValidate)
-        self.connect(self.xCheck, SIGNAL("clicked()"), self.ParsingError)
-        self.connect(self.yCheck, SIGNAL("clicked()"), self.ParsingError)
+        self.xTransf.editingFinished.connect(self.xTransfValidate)
+        self.yTransf.editingFinished.connect(self.yTransfValidate)
+        self.xCheck.clicked.connect(self.ParsingError)
+        self.yCheck.clicked.connect(self.ParsingError)
 
-        self.connect(self.dataList, SIGNAL("currentItemChanged("
-            "QListWidgetItem*, QListWidgetItem*)"), self.update_Ui)
+        self.dataList.currentItemChanged.connect(self.update_Ui)
 
     def applyTransf(self):
         """docstring for applyTransf"""
@@ -108,7 +108,7 @@ class DataEditor(QDialog):
                 item = self.dataList.item(idx)
                 self.datasets[item.name].transform = item.transf
 
-            self.emit(SIGNAL("changedPlotData"))
+            self.changedPlotData.emit()
         else:
             QMessageBox.critical(self, "Parsing Errors",
                               "There were parsing errors reading the "

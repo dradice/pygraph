@@ -1,8 +1,9 @@
 from __future__ import division
 
 from qwt import *
-from PyQt4.QtGui import QBrush, QColor, QFont, QPen, QRubberBand
-from PyQt4.QtCore import QEvent, QObject, QPoint, QRect, QSize, QSizeF, Qt, SIGNAL
+from PyQt5.QtGui import QBrush, QColor, QFont, QPen
+from PyQt5.QtWidgets import QRubberBand
+from PyQt5.QtCore import QPoint, QRect, QSize, QSizeF, Qt, pyqtSignal
 
 import pygraph.common as common
 
@@ -79,6 +80,7 @@ class PlotWidget(QwtPlot):
         zstack      : zoom stack
         rubber_band : QRubberBand
     """
+    changedStatus = pyqtSignal()
     def __init__(self, parent=None):
         super(PlotWidget, self).__init__(parent)
         self.setCanvasBackground(QColor("white"))
@@ -191,7 +193,7 @@ class PlotWidget(QwtPlot):
         if self.rubber_band.isVisible():
             self.rubber_band.setGeometry(QRect(self.origin, event.pos()).normalized())
         common.status = "{:g} {:g}".format(*self.getCoordinates(event.pos()))
-        self.emit(SIGNAL("changedStatus"))
+        self.changedStatus.emit()
         QwtPlot.mouseMoveEvent(self, event)
     def mouseReleaseEvent(self, event):
         """
@@ -270,7 +272,7 @@ class PlotWidget(QwtPlot):
         for key in datasets.keys():
             rawdata = datasets[key]
             if key not in self.curves:
-                ltext = shortText(key, common.settings["Plot/legendTextLength"])
+                ltext = shortText(key, int(common.settings["Plot/legendTextLength"]))
                 ltext = QwtText(ltext)
                 ltext.setFont(QFont(common.settings["Plot/font"],
                     common.settings["Plot/legendFontSize"]))
@@ -320,7 +322,7 @@ class PlotWidget(QwtPlot):
             Reset the name of the fields in the legend
         """
         for key, item in self.curves.items():
-            ltext = shortText(key, common.settings["Plot/legendTextLength"])
+            ltext = shortText(key, int(common.settings["Plot/legendTextLength"]))
             ltext = QwtText(ltext)
             ltext.setFont(QFont(common.settings["Plot/font"],
                     common.settings["Plot/legendFontSize"]))
