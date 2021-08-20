@@ -33,7 +33,7 @@ setup(
     author_email = 'david.radice@psu.edu',
     cmdclass = {'build': QtBuild},
     license = 'GPLv3',
-    packages = ['pygraph'],
+    packages = ['pygraph', 'scidata'],
     package_data = {'pygraph' : ['data/*']},
     requires = ['PyQt5', 'PythonQwt'],
     scripts = ['./bin/pygraph'],
