@@ -8,7 +8,7 @@ import sys
 
 # to run from the current folder
 import os
-sys.path.append(os.getcwd())
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 import qwt
 from PyQt5.QtWidgets import QApplication
