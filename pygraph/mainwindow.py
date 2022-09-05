@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
                 common.settings["PlotSettings/Size"])
 
         self.timer = QTimer()
-        self.timer.setInterval(1000.0/common.settings["Animation/FPS"])
+        self.timer.setInterval(int(1000.0/common.settings["Animation/FPS"]))
 
         common.settings["Plot/yLogScale"] = options.logscale
 

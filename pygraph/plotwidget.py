@@ -132,10 +132,12 @@ class PlotWidget(QwtPlot):
 
         interval_x = self.axisScaleDiv(QwtPlot.xBottom)
         interval_y = self.axisScaleDiv(QwtPlot.yLeft)
-        xmin_old = interval_x.lowerBound()
-        xmax_old = interval_x.upperBound()
-        ymin_old = interval_y.lowerBound()
-        ymax_old = interval_y.upperBound()
+        if interval_x is not None:
+            xmin_old = interval_x.lowerBound()
+            xmax_old = interval_x.upperBound()
+        if interval_y is not None:
+            ymin_old = interval_y.lowerBound()
+            ymax_old = interval_y.upperBound()
 
         xmin = common.settings["Plot/xMin"]
         xmax = common.settings["Plot/xMax"]
