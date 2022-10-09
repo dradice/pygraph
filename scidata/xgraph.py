@@ -33,7 +33,7 @@ def parse(liter, column=None):
                 r"\s*[#\"]*\s*(\w*)\s*=\s*(-?\d*\.?\d*[eE]?[-+]?\d*).*", l)
 
         if header is not None:
-            if header.group(1) == 'Time':
+            if header.group(1).lower() == 'time':
                 if si != ei:
                     dataset.ranges.append((si, ei))
                 si = ei
