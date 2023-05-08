@@ -244,7 +244,7 @@ class PlotWidget(QwtPlot):
                 cf = dataset.frame(i*fac)
                 currentColor = QColor()
                 currentColor.setHsv(basecolor.hue(), basecolor.saturation(),
-                        basecolor.value() * i/nframe,
+                        basecolor.value() * i//nframe,
                         basecolor.alpha())
                 qsymbol = QwtSymbol(QwtSymbol.Rect,
                         QBrush(QColor(currentColor)),
