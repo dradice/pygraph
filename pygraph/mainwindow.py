@@ -7,7 +7,6 @@ from pygraph.hardcopy import Hardcopy
 from pygraph.datasets import DataSetType, DataSet
 from pygraph.plotsettings import PlotSettings
 from pygraph.plotwidget import PlotWidget
-from numpy import *
 from scidata.utils import FileTypeError
 
 import pygraph.resources
@@ -630,7 +629,7 @@ class MainWindow(QMainWindow):
                 "FPS", common.settings["Animation/FPS"], 1)
         if ok and fps != common.settings["Animation/FPS"]:
             common.settings["Animation/FPS"] = fps
-            self.timer.setInterval(1000.0/common.settings["Animation/FPS"])
+            self.timer.setInterval(round(1000.0/common.settings["Animation/FPS"]))
 
 ###############################################################################
 # Play menu
