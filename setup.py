@@ -35,7 +35,7 @@ setup(
     license = 'GPLv3',
     packages = ['pygraph', 'scidata', 'scidata/carpet'],
     package_data = {'pygraph' : ['data/*']},
-    requires = ['PyQt5', 'PythonQwt'],
+    requires = ['PyQt5', 'PythonQwt', 'numpy'],
     scripts = ['./bin/pygraph'],
     url = 'https://bitbucket.org/dradice/pygraph'
 )
