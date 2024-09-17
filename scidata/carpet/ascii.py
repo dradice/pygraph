@@ -37,7 +37,7 @@ def parse_1D(liter, axis, reflevel=None, column=1):
     dataset.data_y  = []
     dataset.ranges  = []
 
-    old_iter = - numpy.Inf
+    old_iter = - numpy.inf
     si = 0
     ei = 0
 
@@ -90,7 +90,7 @@ def parse_1D_file(filename, reflevel=None, column=None):
     * filename : is the file name
     * dataset  : is the scidata.monodataset.dataset object
     """
-    fre = re.match("(.+)\.([xyzd])\.(\w+)", filename)
+    fre = re.match(r"(.+)\.([xyzd])\.(\w+)", filename)
 
     axis = fre.group(2)
     ext  = fre.group(3)

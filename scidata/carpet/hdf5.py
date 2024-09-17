@@ -484,7 +484,7 @@ def parse_1D_file(filename, reflevel=None, dtype=None):
     """
     Parse a 1D CarpetHDF5 file and retun a scidata.monodataset.dataset
     """
-    fre = re.match("(.+)\.([xyzd])\.(\w+)", filename)
+    fre = re.match(r"(.+)\.([xyzd])\.(\w+)", filename)
     ext  = fre.group(3)
     if ext != "h5":
         raise scidata.utils.FileTypeError(filename)
