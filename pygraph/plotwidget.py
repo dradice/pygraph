@@ -224,6 +224,7 @@ class PlotWidget(QwtPlot):
             self.setAxisScale(QwtPlot.xBottom, rect[0], rect[1])
             self.setAxisScale(QwtPlot.yLeft,   rect[2], rect[3])
         QwtPlot.mouseReleaseEvent(self, event)
+        self.replot()
 
     def plotAll(self, datasets):
         """this function plots all the frames at once"""
