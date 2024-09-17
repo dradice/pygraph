@@ -25,7 +25,7 @@ class QtBuild(build):
         build.run(self)
 
 setup(
-    name = 'pygraph',
+    name = 'pyygraph',
     version = '1.1',
     description = 'A freely available, lightweight and easy to use ' +
         'visualization client for viewing 1D data files.',
@@ -35,7 +35,7 @@ setup(
     license = 'GPLv3',
     packages = ['pygraph', 'scidata', 'scidata/carpet'],
     package_data = {'pygraph' : ['data/*']},
-    requires = ['PyQt5', 'PythonQwt', 'numpy'],
+    requires = ['pyqt5', 'pythonqwt', 'numpy', 'h5py'],
     scripts = ['./bin/pygraph'],
     url = 'https://bitbucket.org/dradice/pygraph'
 )
