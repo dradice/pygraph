@@ -129,5 +129,7 @@ The icons are from the Tango project.
 ## References
 
 http://www.cactuscode.org/documentation/visualization/xGraph/
+
 http://www.cactuscode.org/documentation/visualization/yGraph/
+
 http://tango.freedesktop.org
