@@ -15,5 +15,5 @@ setup(
     package_data = {'pygraph' : ['data/*']},
     install_requires = ['pyqt5', 'pythonqwt', 'numpy', 'h5py'],
     scripts = ['./bin/pygraph'],
-    url = 'https://bitbucket.org/dradice/pygraph'
+    url = 'https://github.com/dradice/pygraph'
 )
