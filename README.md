@@ -15,6 +15,15 @@ PythonYGraph is a PyQt re-implementation of xGraph and yGraph:
 * PythonQwt
 
 
+## Installation
+
+You can install PythonYGraph from [PyPI](https://pypi.org/project/PythonYGraph):
+
+```sh
+pip install PythonYGraph
+```
+
+
 ## Mouse shortcuts
 
 * Left click + drag: zoom-in
