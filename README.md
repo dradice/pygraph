@@ -10,22 +10,11 @@ pygraph is a PyQt re-implementation of xGraph and yGraph:
 Requirements
 ------------
 
+* h5py
+* NumPy
 * Python3
 * PyQt5
 * PythonQwt
-
-
-Installation
-------------
-
-After all the required packages are installed, pygraph can be installed using
-the following commands
-
-$ git clone https://bitbucket.org/dradice/pygraph.git
-
-$ cd pygraph
-
-$ sudo python setup.py install
 
 
 Mouse shortcuts
@@ -45,15 +34,17 @@ numpy expressions.
 
 Example: shifting the data and removing a secular trend
 
+```
   x' = x + 0.5
-
   y' = y + 0.1*sin(x + 2*pi*t)*x
+```
 
 Example: computing the derivative of the data
 
+```
   x' = x
-
   y' = D(y)/D(x)
+```
 
 
 Command Line Interface
@@ -61,15 +52,21 @@ Command Line Interface
 
 pygraph can be invoked from the command-line as
 
+```
 $ pygraph
+```
 
 It is possible to specify a list of files to open with
 
+```
 $ pygraph file1 file2 ...
+```
 
 One can specify which data column to read from an ASCII file with the syntax
 
+```
 $ pygraph file.xg ^5
+```
 
 If the column is not specified pygraph will use a reasonable default. Note that
 the column number for the coordinates is currently hard coded for each datafile
@@ -79,27 +76,34 @@ In the case a dataset is split over different files it is possible
 to make pygraph automatically merge them, by simply enclosing the relevant
 list of files within curly brackets as:
 
+```
 $ pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
+```
 
 Please notice the space between the brackets and the file list.
 
 In case you wish to combine two datasets, using the y-data of the second one
 as the x-data of the first one, you can use
 
+```
 $ pygraph file1 @ file2
+```
 
 this will plot file1 using file2 y-data as its x-data.
 
-You can also use {}, ^ and @ together, as in
+You can also use `{}`, `^` and `@` together, as in
 
+```
 $ pygraph { file1 ^2 file2 ^3 } @ { file3 file4 ^4 }
+```
 
 Note that in the second group the 4th column is used for both files.
 
 For more informations see
 
+```
 $ pygraph --help
-
+```
 
 Pygraph data format (.pyg)
 --------------------------
@@ -125,7 +129,5 @@ References
 ----------
 
 http://www.cactuscode.org/documentation/visualization/xGraph/
-
 http://www.cactuscode.org/documentation/visualization/yGraph/
-
 http://tango.freedesktop.org
