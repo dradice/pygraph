@@ -20,10 +20,10 @@ Requirements
 Mouse shortcuts
 ---------------
 
-* Left click + drag:        zoom-in
-* Right click:              previous zoom settings
-* Shift + Right click:      next zoom settings
-* Middle click:             original zoom settings
+* Left click + drag: zoom-in
+* Right click: previous zoom settings
+* Shift + Right click: next zoom settings
+* Middle click: original zoom settings
 
 
 Data transformations
@@ -34,14 +34,14 @@ numpy expressions.
 
 Example: shifting the data and removing a secular trend
 
-```
+```text
   x' = x + 0.5
   y' = y + 0.1*sin(x + 2*pi*t)*x
 ```
 
 Example: computing the derivative of the data
 
-```
+```text
   x' = x
   y' = D(y)/D(x)
 ```
@@ -52,32 +52,32 @@ Command Line Interface
 
 pygraph can be invoked from the command-line as
 
-```
-$ pygraph
+```sh
+pygraph
 ```
 
 It is possible to specify a list of files to open with
 
-```
-$ pygraph file1 file2 ...
+```sh
+pygraph file1 file2 ...
 ```
 
 One can specify which data column to read from an ASCII file with the syntax
 
-```
-$ pygraph file.xg ^5
+```sh
+pygraph file.xg ^5
 ```
 
 If the column is not specified pygraph will use a reasonable default. Note that
-the column number for the coordinates is currently hard coded for each datafile
+the column number for the coordinates is currently hard coded for each data file
 format.
 
 In the case a dataset is split over different files it is possible
 to make pygraph automatically merge them, by simply enclosing the relevant
 list of files within curly brackets as:
 
-```
-$ pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
+```sh
+pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
 ```
 
 Please notice the space between the brackets and the file list.
@@ -85,27 +85,27 @@ Please notice the space between the brackets and the file list.
 In case you wish to combine two datasets, using the y-data of the second one
 as the x-data of the first one, you can use
 
-```
-$ pygraph file1 @ file2
+```sh
+pygraph file1 @ file2
 ```
 
 this will plot file1 using file2 y-data as its x-data.
 
 You can also use `{}`, `^` and `@` together, as in
 
-```
-$ pygraph { file1 ^2 file2 ^3 } @ { file3 file4 ^4 }
+```sh
+pygraph { file1 ^2 file2 ^3 } @ { file3 file4 ^4 }
 ```
 
 Note that in the second group the 4th column is used for both files.
 
-For more informations see
+For more information see
 
-```
-$ pygraph --help
+```sh
+pygraph --help
 ```
 
-Pygraph data format (.pyg)
+pygraph data format (.pyg)
 --------------------------
 
 pygraph also has its own HDF5-based data format. You should consider using this
