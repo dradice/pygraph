@@ -1,14 +1,12 @@
-pygraph
-=======
+# PythonYGraph
 
 A freely available, lightweight and easy to use visualization client for
 viewing 1D data files.
 
-pygraph is a PyQt re-implementation of xGraph and yGraph:
+PythonYGraph is a PyQt re-implementation of xGraph and yGraph:
 
 
-Requirements
-------------
+## Requirements
 
 * h5py
 * NumPy
@@ -17,8 +15,7 @@ Requirements
 * PythonQwt
 
 
-Mouse shortcuts
----------------
+## Mouse shortcuts
 
 * Left click + drag: zoom-in
 * Right click: previous zoom settings
@@ -26,8 +23,7 @@ Mouse shortcuts
 * Middle click: original zoom settings
 
 
-Data transformations
---------------------
+## Data transformations
 
 Data transformations strings are evaluated as lambda functions with
 numpy expressions.
@@ -46,11 +42,9 @@ Example: computing the derivative of the data
   y' = D(y)/D(x)
 ```
 
+## Command Line Interface
 
-Command Line Interface
-----------------------
-
-pygraph can be invoked from the command-line as
+PythonYGraph can be invoked from the command-line as
 
 ```sh
 pygraph
@@ -68,13 +62,13 @@ One can specify which data column to read from an ASCII file with the syntax
 pygraph file.xg ^5
 ```
 
-If the column is not specified pygraph will use a reasonable default. Note that
-the column number for the coordinates is currently hard coded for each data file
-format.
+If the column is not specified PythonYGraph will use a reasonable default. Note
+that the column number for the coordinates is currently hard coded for each
+data file format.
 
-In the case a dataset is split over different files it is possible
-to make pygraph automatically merge them, by simply enclosing the relevant
-list of files within curly brackets as:
+In the case a dataset is split over different files it is possible to make
+PythonYGraph automatically merge them, by simply enclosing the relevant list of
+files within curly brackets as:
 
 ```sh
 pygraph { rho.1.xg rho.2.xg rho.3.h5 } { */data/vel[0].x.asc }
@@ -105,19 +99,17 @@ For more information see
 pygraph --help
 ```
 
-pygraph data format (.pyg)
---------------------------
+## PythonYGraph data format (.pyg)
 
-pygraph also has its own HDF5-based data format. You should consider using this
-format over the old xgraph ASCII format when creating large data files as
+PythonYGraph also has its own HDF5-based data format. You should consider using
+this format over the old xgraph ASCII format when creating large data files as
 reading PYG data does not require any (slow) string parsing.
 
 The .PYG data format is undocumented, but a reference C implementation of a
 .PYG writer is provided in the "lib" directory.
 
 
-Acknowledgements
-----------------
+## Acknowledgements
 
 Parts of this code has been adapted from the GPLed examples distributed
 alongside the book "Summerfield - Rapid GUI Programming with Python and Qt".
@@ -125,8 +117,7 @@ alongside the book "Summerfield - Rapid GUI Programming with Python and Qt".
 The icons are from the Tango project.
 
 
-References
-----------
+## References
 
 http://www.cactuscode.org/documentation/visualization/xGraph/
 http://www.cactuscode.org/documentation/visualization/yGraph/
